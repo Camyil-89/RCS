@@ -42,7 +42,6 @@ namespace RCS.Service.Certificate
 		{
 			try
 			{
-				//var cert_raw = XmlProvider.LoadInzip<Models.Certificates.Russian.Certificate>(path_to_zip, "RCS_Certificate_metadata.сертификат");
 				XmlProvider.DeleteEntryzip(path_to_zip, "RCS_Certificate_metadata.сертификат");
 				XmlProvider.DeleteEntryzip(path_to_zip, "RCS_Certificate_metadata.подпись");
 
