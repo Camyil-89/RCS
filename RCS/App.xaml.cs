@@ -38,6 +38,12 @@ namespace RCS
 		public static void ConfigureServices(HostBuilderContext builder, IServiceCollection services)
 		{
 			services.AddSingleton<ViewModels.Windows.MainVM>();
+			services.AddSingleton<ViewModels.Pages.Main.CreateCertificatePageVM>();
+			services.AddSingleton<ViewModels.Pages.Main.TrustedCertificatesPageVM>();
+			services.AddSingleton<ViewModels.Pages.Main.CheckCertificatePageVM>();
+			services.AddSingleton<Views.Pages.Main.CreateCertificatePage>();
+			services.AddSingleton<Views.Pages.Main.TrustedCertificatesPage>();
+			services.AddSingleton<Views.Pages.Main.CheckCertificatePage>();
 			services.AddSingleton<Service.Settings>();
 		}
 	}

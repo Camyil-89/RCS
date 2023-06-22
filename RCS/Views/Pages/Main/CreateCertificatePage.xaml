@@ -1,0 +1,162 @@
+﻿<Page x:Class="RCS.Views.Pages.Main.CreateCertificatePage"
+	  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+	  xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+	  xmlns:local="clr-namespace:RCS.Views.Pages.Main"
+	  mc:Ignorable="d" 
+	  d:DesignHeight="450" d:DesignWidth="650"
+	  Title="CreateCertificate"
+	  d:Background="White"
+	  DataContext="{Binding CreateCertificatePageVM, Source={StaticResource Locator}}">
+
+	<Grid Margin="2">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition/>
+			<ColumnDefinition/>
+		</Grid.ColumnDefinitions>
+		<StackPanel Orientation="Vertical">
+			<GroupBox Header="Добавление новых полей">
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition/>
+						<ColumnDefinition/>
+					</Grid.ColumnDefinitions>
+					<Button Style="{StaticResource BaseButton}"
+							Content="Добавить"
+							Grid.Column="1"
+							HorizontalAlignment="Right"/>
+					<ComboBox ItemsSource="{Binding TypeAttributeCertificate}"
+						  FontSize="14"
+						  DisplayMemberPath="Value"
+						  SelectedValuePath="Key"
+						  SelectedValue="{Binding SelectedTypeAttribute}"/>
+				</Grid>
+			</GroupBox>
+		</StackPanel>
+		<Grid Grid.Column="1">
+			<ScrollViewer>
+				<StackPanel Orientation="Vertical">
+					<Grid>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition/>
+							<ColumnDefinition/>
+						</Grid.ColumnDefinitions>
+						<Button Style="{StaticResource BaseButton}"
+						Content="Создать"
+						HorizontalAlignment="Left"
+						Command="{Binding CreateCertCommand}"/>
+						<Button Style="{StaticResource BaseButton}"
+						Content="Очистить поля"
+						Grid.Column="1"
+								HorizontalAlignment="Right"
+						Command="{Binding ClearInfoCommand}"/>
+					</Grid>
+					<GroupBox Header="Обязательные поля">
+						<StackPanel Orientation="Vertical">
+							<Grid Margin="0 0 0 2">
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition/>
+									<ColumnDefinition/>
+								</Grid.ColumnDefinitions>
+								<TextBlock FontSize="14"
+									   VerticalAlignment="Center"
+									   Text="Кому выдан"/>
+								<TextBox FontSize="14"
+								Grid.Column="1"
+									 Text="{Binding InfoSertificate.Name}"/>
+							</Grid>
+							<Grid Margin="0 0 0 2">
+								<GroupBox Header="Кем выдан" FontSize="14">
+									<Grid>
+										<StackPanel Orientation="Vertical">
+											<CheckBox
+											FlowDirection="RightToLeft"
+											Content="Самоподписанный"
+											IsChecked="{Binding SelfSign}"
+											VerticalContentAlignment="Center"
+											Margin="0 0 0 5"/>
+											<!--<Button Style="{StaticResource BaseButton}"
+												HorizontalAlignment="Right"
+												Width="150"
+												Command="{Binding SelectCertMasterCommand}"
+												IsEnabled="{Binding EnableButtonSelectCert}"
+												Content="Выбрать сертификат"/>-->
+											<ComboBox FontSize="14"
+													  ItemsSource="{Binding Settings.CertificateStore.Certificates}"
+													  IsEnabled="{Binding EnableButtonSelectCert}"
+													  SelectedItem="{Binding SelectedStoreItem}">
+												<ComboBox.ItemTemplate>
+													<DataTemplate>
+														<StackPanel Orientation="Horizontal">
+															<TextBlock Text="{Binding Certificate.Certificate.Info.Name}"/>
+														</StackPanel>
+													</DataTemplate>
+												</ComboBox.ItemTemplate>
+											</ComboBox>
+											<GroupBox Header="Сертификат"
+												  IsEnabled="{Binding EnableButtonSelectCert}">
+												<StackPanel Orientation="Vertical">
+													<Grid Margin="0 5 0 2">
+														<Grid.ColumnDefinitions>
+															<ColumnDefinition/>
+															<ColumnDefinition/>
+														</Grid.ColumnDefinitions>
+														<TextBlock FontSize="14"
+												 VerticalAlignment="Center"
+												 Text="Кому выдан"/>
+														<TextBox FontSize="14"
+													 IsReadOnly="True"
+																 Text="{Binding InfoSertificate.Master}"
+													 Grid.Column="1"/>
+													</Grid>
+													<Grid Margin="0 5 0 2">
+														<Grid.ColumnDefinitions>
+															<ColumnDefinition/>
+															<ColumnDefinition/>
+														</Grid.ColumnDefinitions>
+														<TextBlock FontSize="14"
+													 VerticalAlignment="Center"
+													Text="Идентификатор"/>
+														<TextBox FontSize="14"
+													 IsReadOnly="True"
+																 Text="{Binding InfoSertificate.MasterUID}"
+													 Grid.Column="1"/>
+													</Grid>
+												</StackPanel>
+											</GroupBox>
+										</StackPanel>
+									</Grid>
+								</GroupBox>
+							</Grid>
+							<Grid Margin="0 0 0 2">
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition/>
+									<ColumnDefinition/>
+								</Grid.ColumnDefinitions>
+								<TextBlock FontSize="14"
+									   VerticalAlignment="Center"
+									   Text="Когда выдан"/>
+								<DatePicker Grid.Column="1"
+										FontSize="14"
+										SelectedDate="{Binding InfoSertificate.DateCreate}"/>
+							</Grid>
+							<Grid Margin="0 0 0 2">
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition/>
+									<ColumnDefinition/>
+								</Grid.ColumnDefinitions>
+								<TextBlock FontSize="14"
+									   VerticalAlignment="Center"
+									   Text="Когда истечет"/>
+								<DatePicker Grid.Column="1"
+										FontSize="14"
+										SelectedDate="{Binding InfoSertificate.DateDead}"/>
+							</Grid>
+						</StackPanel>
+					</GroupBox>
+				</StackPanel>
+			</ScrollViewer>
+		</Grid>
+	</Grid>
+</Page>

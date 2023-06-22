@@ -1,0 +1,18 @@
+﻿<Page x:Class="RCS.Views.Pages.Main.CheckCertificatePage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:RCS.Views.Pages.Main"
+      mc:Ignorable="d" 
+      Title="CheckCertificatePage"
+	  d:DesignHeight="450"
+	  d:DesignWidth="650"
+	  d:Background="White"
+	  DataContext="{Binding CheckCertificatePageVM, Source={StaticResource Locator}}">
+	<Grid>
+		<Button Style="{StaticResource BaseButton}"
+				Content="Проверить"
+				Command="{Binding CheckCertCommand}"/>
+	</Grid>
+</Page>

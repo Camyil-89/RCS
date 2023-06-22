@@ -7,6 +7,9 @@
     <Application.Resources>
         <ResourceDictionary>
             <vm:Locator x:Key="Locator"/>
-        </ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="Styles/ButtonStyles.xaml"/>
+			</ResourceDictionary.MergedDictionaries>
+		</ResourceDictionary>
     </Application.Resources>
 </Application>

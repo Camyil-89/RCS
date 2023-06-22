@@ -14,12 +14,12 @@ namespace RCS
 {
 	public static class Program
 	{
-		public static string PathToSave = $"{Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)}\\RCS";
 		[STAThread]
 		public static void Main(string[] args)
 		{
 			Directory.SetCurrentDirectory($"{new FileInfo(Process.GetCurrentProcess().MainModule.FileName).DirectoryName}");
-
+			Directory.CreateDirectory(XmlProvider.PathToSave);
+			Directory.CreateDirectory(XmlProvider.PathToTrustedCertificates);
 			var app = new App();
 			app.InitializeComponent();
 			Load();
@@ -41,7 +41,7 @@ namespace RCS
 		{
 			try
 			{
-				XmlProvider.Save<SettingsParametrs>($"{PathToSave}\\settings.xml", Settings.Instance.Parametrs);
+				XmlProvider.Save<SettingsParametrs>($"{XmlProvider.PathToSave}\\settings.xml", Settings.Instance.Parametrs);
 			}
 			catch { }
 		}
@@ -58,7 +58,7 @@ namespace RCS
 		{
 			try
 			{
-				Settings.Instance.Parametrs = XmlProvider.Load<SettingsParametrs>($"{PathToSave}\\settings.xml");
+				Settings.Instance.Parametrs = XmlProvider.Load<SettingsParametrs>($"{XmlProvider.PathToSave}\\settings.xml");
 			}
 			catch { }
 		}

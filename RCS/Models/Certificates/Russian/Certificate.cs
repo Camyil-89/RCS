@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -12,10 +14,164 @@ using System.Xml.Serialization;
 
 namespace RCS.Models.Certificates.Russian
 {
+	public enum TypeAttribute: byte
+	{
+		[XmlEnum("Число")]
+		[Description("Число")]
+		Double = 0,
+		[XmlEnum("Строка")]
+		[Description("Строка")]
+		String = 1,
+		[XmlEnum("Дата")]
+		[Description("Дата")]
+		Date = 2,
+		[XmlEnum("Массив_байт")]
+		[Description("Файл")]
+		ByteArray = 3,
+	}
+	[XmlType(TypeName = "Поле")]
+	public class CertificateAttribute: Base.ViewModel.BaseViewModel
+	{
+
+		#region Name: Description
+		/// <summary>Description</summary>
+		private string _Name;
+		/// <summary>Description</summary>
+		[XmlAttribute("Имя_поля")]		
+		public string Name { get => _Name; set => Set(ref _Name, value); }
+		#endregion
+
+		#region Type: Description
+		/// <summary>Description</summary>
+		private TypeAttribute _Type;
+		/// <summary>Description</summary>
+		[XmlAttribute("Тип_поля")]		
+		public TypeAttribute Type { get => _Type; set => Set(ref _Type, value); }
+		#endregion
+
+		[XmlElement("Значение")]
+		public XmlCDataSection AttributeValueCData
+		{
+			get
+			{
+				if (Data is string)
+				{
+					var document = new XmlDocument();
+					return document.CreateCDataSection(Data.ToString());
+				}
+				else if (Data is byte[])
+				{
+					return GetByteDataSection((byte[])Data);
+				}
+				else if (Data is DateTime)
+				{
+					return GetDateTimeDataSection((DateTime)Data);
+				}
+				else if (Data is double || Data is int)
+				{
+					return GetDoubleDataSection(double.Parse(Data.ToString()));
+				}
+				//else if (Data is int)
+				//{
+				//	return GetIntDataSection((int)Data);
+				//}
+				else
+				{
+					return null; // Логика для других типов данных
+				}
+				return null;
+			}
+			set
+			{
+				if (Type == TypeAttribute.String)
+				{
+					Data = value.Value;
+				}
+				else if (Type == TypeAttribute.ByteArray)
+				{
+					Data = GetByteDataFromSection(value);
+				}
+				else if (Type == TypeAttribute.Date)
+				{
+					Data = GetDateTimeDataFromSection(value);
+				}
+				else if(Type == TypeAttribute.Double)
+				{
+					Data = GetDoubleDataFromSection(value);
+				}
+				//else if (Type == TypeAttribute.Int)
+				//{
+				//	Data = GetIntDataFromSection(value);
+				//}
+			}
+		}
+		#region Attribute: Description
+		/// <summary>Description</summary>
+		private object _Data;
+		/// <summary>Description</summary>
+		[XmlIgnore]
+		public object Data { get => _Data; set => Set(ref _Data, value); }
+		#endregion
+
+
+		private XmlCDataSection GetByteDataSection(byte[] data)
+		{
+			var document = new XmlDocument();
+			return document.CreateCDataSection(Convert.ToBase64String(data));
+		}
+
+		private byte[] GetByteDataFromSection(XmlCDataSection section)
+		{
+			return Convert.FromBase64String(section.Value);
+		}
+
+		private XmlCDataSection GetDateTimeDataSection(DateTime dateTime)
+		{
+			var document = new XmlDocument();
+			return document.CreateCDataSection(dateTime.ToString("yyyy-MM-ddTHH:mm:ss"));
+		}
+
+		private DateTime GetDateTimeDataFromSection(XmlCDataSection section)
+		{
+			return DateTime.Parse(section.Value);
+		}
+
+		private XmlCDataSection GetDoubleDataSection(double number)
+		{
+			var document = new XmlDocument();
+			return document.CreateCDataSection(number.ToString());
+		}
+
+		private double GetDoubleDataFromSection(XmlCDataSection section)
+		{
+			return double.Parse(section.Value);
+		}
+
+		private XmlCDataSection GetIntDataSection(int number)
+		{
+			var document = new XmlDocument();
+			return document.CreateCDataSection(number.ToString());
+		}
+
+		private int GetIntDataFromSection(XmlCDataSection section)
+		{
+			return int.Parse(section.Value);
+		}
+	}
 	[XmlType(TypeName ="Минимальная")]
 	[XmlInclude(typeof(CertificateInfo))]
+	[XmlInclude(typeof(CertificateAttribute))]
 	public abstract class BaseCertificateInfo: Base.ViewModel.BaseViewModel
 	{
+
+
+		#region MasterUID: Description
+		/// <summary>Description</summary>
+		private Guid _MasterUID;
+		/// <summary>Description</summary>
+		[XmlAttribute("Идентификатор_родителя")]
+		public Guid MasterUID { get => _MasterUID; set => Set(ref _MasterUID, value); }
+		#endregion
 
 		#region UID: Description
 		/// <summary>Description</summary>
@@ -98,12 +254,13 @@ namespace RCS.Models.Certificates.Russian
 	[XmlType(TypeName = "Базовая")]
 	public class CertificateInfo : BaseCertificateInfo
 	{
-		#region Data: Description
+
+		#region Attributes: Description
 		/// <summary>Description</summary>
-		private string _Data = "Test";
+		private ObservableCollection<CertificateAttribute> _Attributes = new ObservableCollection<CertificateAttribute>();
 		/// <summary>Description</summary>
-		[XmlAttribute("Информация_о_сертификате")]
-		public string Data { get => _Data; set => Set(ref _Data, value); }
+		[XmlArray("Доступная_информация")]
+		public ObservableCollection<CertificateAttribute> Attributes { get => _Attributes; set => Set(ref _Attributes, value); }
 		#endregion
 	}
 	[XmlType(TypeName="Сертификат")]
@@ -127,6 +284,8 @@ namespace RCS.Models.Certificates.Russian
         #endregion
 		public void SaveToFile(string path)
 		{
+			if (path.EndsWith(".сертификат") == false)
+				path += ".сертификат";
 			using (StreamWriter sw = new StreamWriter(path))
 			{
 				XmlSerializer xmls = new XmlSerializer(this.GetType());

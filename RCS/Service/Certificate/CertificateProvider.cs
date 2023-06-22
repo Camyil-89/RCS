@@ -18,6 +18,7 @@ namespace RCS.Service.Certificate
 		{
 			if (settings.MasterCertificate == null)
 			{
+				Log.WriteLine("RCSCreateCertificate.SELF", LogLevel.Error);
 				var cert = new Models.Certificates.Russian.CertificateSecret();
 				cert.Certificate.Info = settings.Info;
 				cert.Init(settings.Name, settings.SizeKey);
@@ -26,6 +27,7 @@ namespace RCS.Service.Certificate
 			}
 			else
 			{
+				Log.WriteLine("RCSCreateCertificate.MASTER", LogLevel.Error);
 				var cert = new Models.Certificates.Russian.CertificateSecret();
 				cert.Certificate.Info = settings.Info;
 				cert.Init(settings.MasterCertificate, settings.Name, settings.SizeKey);
@@ -33,48 +35,75 @@ namespace RCS.Service.Certificate
 			}
 			
 		}
+		public static Models.Certificates.Russian.Certificate RCSLoadCertificate(string path)
+		{
+			return XmlProvider.Load<Models.Certificates.Russian.Certificate>(path);
+		}
+		public static CertificateSecret RCSLoadCertificateSecret(string path)
+		{
+			return XmlProvider.Load<CertificateSecret>(path);
+		}
 		public static bool VerifyCertificate(Models.Certificates.Russian.Certificate master, Models.Certificates.Russian.Certificate slave)
 		{
+			if (slave.Info.DateDead > DateTime.Now)
+				return false;
 			return master.Verify(slave.Info.RawByte(), slave.Sign);
 		}
 
-		public static void RCSSignZipFile(string path_to_zip, Models.Certificates.Russian.CertificateSecret certificate)
-		{
-			try
-			{
-				XmlProvider.DeleteEntryzip(path_to_zip, "RCS_Certificate_metadata.сертификат");
-				XmlProvider.DeleteEntryzip(path_to_zip, "RCS_Certificate_metadata.подпись");
-
-				var stream = new FileStream(path_to_zip, FileMode.Open);
-				var sign = certificate.Sign(stream);
-				stream.Close();
-				XmlProvider.SaveInzip<Models.Certificates.Russian.Certificate>(path_to_zip, "RCS_Certificate_metadata.сертификат", certificate.Certificate);
-				XmlProvider.WriteInZip(path_to_zip, "RCS_Certificate_metadata.подпись", sign);
-			} catch (Exception ex) { Console.WriteLine(ex); }
-		}
 		public static void Test()
 		{
+			//var g = RCSLoadCertificateSecret("test.секретный.сертификат");
+			//foreach (var i in ((CertificateInfo)g.Certificate.Info).Attributes)
+			//{
+			//	Console.WriteLine($">{i.Type};{i.Name};{i.Data}");
+			//	if (i.Type == TypeAttribute.ByteArray)
+			//	{
+			//		Console.WriteLine($"{string.Join(",", (byte[])i.Data)}");
+			//	}
+			//	if (i.Type == TypeAttribute.Date)
+			//	{
+			//		Console.WriteLine($"{(DateTime)i.Data}");
+			//	}
+			//}
 
+			var x = new CreateSettingsCertificate();
+			var info = new CertificateInfo();
 
-			var cert_1 = RCSCreateCertificate(new CreateSettingsCertificate());
+			info.Attributes.Add(new CertificateAttribute() { Data = "Жуков", Name = "Фамилия", Type = TypeAttribute.String});
+			info.Attributes.Add(new CertificateAttribute() { Data = "Кирилл", Name = "Имя", Type = TypeAttribute.String});
+			info.Attributes.Add(new CertificateAttribute() { Data = "Дмитриевич", Name = "Отчество", Type = TypeAttribute.String});
+			info.Attributes.Add(new CertificateAttribute() { Data = 2.1, Name = "Число", Type = TypeAttribute.Double});
+			info.Attributes.Add(new CertificateAttribute() { Data = 1, Name = "Число", Type = TypeAttribute.Double});
+			info.Attributes.Add(new CertificateAttribute() { Data = DateTime.Now, Name = "3", Type = TypeAttribute.Date});
+			info.Attributes.Add(new CertificateAttribute() { Data = new byte[] { 0, 1, 2, 3}, Name = "2", Type = TypeAttribute.ByteArray});
 
-			cert_1.SaveToFile("root_private.txt");
-			cert_1.Certificate.SaveToFile("root.txt");
+			x.Info = info;
+			var cert_1 = RCSCreateCertificate(x);
+			//cert_1.SaveToFile("test");
 
-			var x = cert_1.Certificate.Info.Raw();
-			var cert_2 = RCSCreateCertificate(new CreateSettingsCertificate() { MasterCertificate = cert_1});
+			var cert_2 = RCSCreateCertificate(new CreateSettingsCertificate() { MasterCertificate = cert_1 });
+			Console.WriteLine(cert_1.Certificate.Verify(cert_2.Certificate.Info.RawByte(), cert_2.Certificate.Sign));
 
-			var cert_3 = RCSCreateCertificate(new CreateSettingsCertificate() { MasterCertificate = cert_2 });
-
-
-			RCSSignZipFile("test.zip", cert_3);
-
-			byte[] array = { 0x1, 0x2, 0x3, 0x4, };
-			var sing = cert_3.Sign(array);
-
-			Console.WriteLine(cert_3.Certificate.Verify(array, sing));
-			array[0] = 0;
-			Console.WriteLine(cert_3.Certificate.Verify(array, sing));
+			return;
+			//var cert_1 = RCSCreateCertificate(new CreateSettingsCertificate());
+			//
+			//cert_1.SaveToFile("root");
+			//cert_1.Certificate.SaveToFile("root");
+			//
+			//var x = cert_1.Certificate.Info.Raw();
+			//var cert_2 = RCSCreateCertificate(new CreateSettingsCertificate() { MasterCertificate = cert_1});
+			//
+			//var cert_3 = RCSCreateCertificate(new CreateSettingsCertificate() { MasterCertificate = cert_2 });
+			//
+			//
+			//cert_3.SignZipFile("test.zip");
+			//
+			//byte[] array = { 0x1, 0x2, 0x3, 0x4, };
+			//var sing = cert_3.Sign(array);
+			//
+			//Console.WriteLine(cert_3.Certificate.Verify(array, sing));
+			//array[0] = 0;
+			//Console.WriteLine(cert_3.Certificate.Verify(array, sing));
 		}
 	}
 

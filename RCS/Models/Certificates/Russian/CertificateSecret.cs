@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RCS.Service;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -33,15 +34,28 @@ namespace RCS.Models.Certificates.Russian
         public Certificate Certificate { get => _Certificate; set => Set(ref _Certificate, value); }
         #endregion
 
+		public void SignZipFile(string path)
+		{
+			XmlProvider.DeleteEntryzip(path, "RCS_Certificate_metadata.сертификат");
+			XmlProvider.DeleteEntryzip(path, "RCS_Certificate_metadata.подпись");
 
+			var stream = new FileStream(path, FileMode.Open);
+			var sign = Sign(stream);
+			stream.Close();
+			XmlProvider.SaveInzip<Models.Certificates.Russian.Certificate>(path, "RCS_Certificate_metadata.сертификат", Certificate);
+			XmlProvider.WriteInZip(path, "RCS_Certificate_metadata.подпись", sign);
+		}
 		public void SignSelf()
 		{
 			Certificate.Info.Master = Certificate.Info.Name;
+			Certificate.Info.MasterUID = Certificate.Info.UID;
 			var bytes = Encoding.UTF8.GetBytes(Certificate.Info.Raw());
 			Certificate.Sign = Sign(bytes);
 		}
 		public void SaveToFile(string path)
 		{
+			if (path.EndsWith(".ссертификат") == false)
+				path += ".ссертификат";
 			using (StreamWriter sw = new StreamWriter(path))
 			{
 				XmlSerializer xmls = new XmlSerializer(this.GetType());

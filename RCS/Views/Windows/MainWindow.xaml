@@ -5,10 +5,40 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RCS"
         mc:Ignorable="d"
-        Title="Русский стандарт сертификации" Height="450" Width="800"
+        Title="Русский стандарт сертификации"
+		Height="450"
+		Width="800"
+		MinWidth="800"
+		MinHeight="450"
+		ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
         DataContext="{Binding MainVM, Source={StaticResource Locator}}">
     <Grid>
-
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="150"/>
+			<ColumnDefinition/>
+		</Grid.ColumnDefinitions>
+		<StackPanel Orientation="Vertical" Grid.Column="0">
+			<StackPanel Orientation="Vertical">
+				<Button Content="Создание сертификата"
+						Style="{StaticResource LeftMenu}"
+						Tag="{Binding SelectedPageCreateCertificate}"
+						Command="{Binding SelectPageCommand}"
+						CommandParameter="{Binding CreateCertificatePage,Source={StaticResource Locator}}"/>
+				<Button Content="Проверка"
+						Style="{StaticResource LeftMenu}"
+						Tag="{Binding SelectedPageCheckCertificate}"
+						Command="{Binding SelectPageCommand}"
+						CommandParameter="{Binding CheckCertificatePage,Source={StaticResource Locator}}"/>
+				<Button Content="Сертификаты"
+						Style="{StaticResource LeftMenu}"
+						Tag="{Binding SelectedPageTrustedCertificates}"
+						Command="{Binding SelectPageCommand}"
+						CommandParameter="{Binding TrustedCertificatesPage,Source={StaticResource Locator}}"/>
+			</StackPanel>
+		</StackPanel>
+		<Grid Grid.Column="1">
+			<Frame NavigationUIVisibility="Hidden" Content="{Binding SelectedPage}"/>
+		</Grid>
     </Grid>
 </Window>
