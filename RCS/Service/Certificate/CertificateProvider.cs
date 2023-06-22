@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -41,9 +42,16 @@ namespace RCS.Service.Certificate
 		{
 			try
 			{
-				var cert_raw = XmlProvider.ReadInZip(path_to_zip, "RCS_Certificate_metadata.сертификат");
+				//var cert_raw = XmlProvider.LoadInzip<Models.Certificates.Russian.Certificate>(path_to_zip, "RCS_Certificate_metadata.сертификат");
+				XmlProvider.DeleteEntryzip(path_to_zip, "RCS_Certificate_metadata.сертификат");
+				XmlProvider.DeleteEntryzip(path_to_zip, "RCS_Certificate_metadata.подпись");
 
-			} catch (Exception ex) { }
+				var stream = new FileStream(path_to_zip, FileMode.Open);
+				var sign = certificate.Sign(stream);
+				stream.Close();
+				XmlProvider.SaveInzip<Models.Certificates.Russian.Certificate>(path_to_zip, "RCS_Certificate_metadata.сертификат", certificate.Certificate);
+				XmlProvider.WriteInZip(path_to_zip, "RCS_Certificate_metadata.подпись", sign);
+			} catch (Exception ex) { Console.WriteLine(ex); }
 		}
 		public static void Test()
 		{

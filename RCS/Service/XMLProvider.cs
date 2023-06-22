@@ -13,29 +13,76 @@ namespace RCS.Service
 	{
 		public static bool CompressZip = true;
 
-		public static string ReadInZip(string path_zip, string path_in_zip)
+		public static T LoadInzip<T>(string path_zip, string path_in_zip)
 		{
 			using (var archive = ZipFile.Open(path_zip, ZipArchiveMode.Read))
 			{
 				var file = archive.GetEntry(path_in_zip);
 				using (var stream = file.Open())
 				{
-					StreamReader streamReader = new StreamReader(stream, Encoding.UTF8);
-					return streamReader.ReadToEnd();
+					XmlSerializer xmls = new XmlSerializer(typeof(T));
+					var x = (T)xmls.Deserialize(stream);
+					return x;
 				}
 			}
 		}
-		public static void WriteInZip(string path_zip, string path_in_zip, byte[] data, CompressionLevel level)
+		public static void DeleteEntryzip(string path_zip, string path_in_zip)
+		{
+			using (var archive = ZipFile.Open(path_zip, ZipArchiveMode.Update))
+			{
+				var demoFile = archive.GetEntry(path_in_zip);
+				if (demoFile != null)
+					demoFile.Delete();
+			}
+		}
+		public static void SaveInzip<T>(string path_zip, string path_in_zip, T obj)
 		{
 			using (var archive = ZipFile.Open(path_zip, ZipArchiveMode.Update))
 			{
 				var demoFile = archive.GetEntry(path_in_zip);
 				if (demoFile == null)
-					demoFile = archive.CreateEntry(path_in_zip, level);
+					demoFile = archive.CreateEntry(path_in_zip);
 				else
 				{
 					demoFile.Delete();
-					demoFile = archive.CreateEntry(path_in_zip, level);
+					demoFile = archive.CreateEntry(path_in_zip);
+				}
+				using (var entryStream = demoFile.Open())
+				using (var sw = new StreamWriter(entryStream))
+				{
+					XmlSerializer xmls = new XmlSerializer(typeof(T));
+					xmls.Serialize(sw, obj);
+				}
+			}
+		}
+		public static byte[] ReadInZip(string path_zip, string path_in_zip)
+		{
+			using (var archive = ZipFile.Open(path_zip, ZipArchiveMode.Read))
+			{
+				var file = archive.GetEntry(path_in_zip);
+				using (var stream = file.Open())
+				{
+					byte[] bytes;
+					using (var memoryStream = new MemoryStream())
+					{
+						stream.CopyTo(memoryStream);
+						bytes = memoryStream.ToArray();
+					}
+					return bytes;
+				}
+			}
+		}
+		public static void WriteInZip(string path_zip, string path_in_zip, byte[] data)
+		{
+			using (var archive = ZipFile.Open(path_zip, ZipArchiveMode.Update))
+			{
+				var demoFile = archive.GetEntry(path_in_zip);
+				if (demoFile == null)
+					demoFile = archive.CreateEntry(path_in_zip);
+				else
+				{
+					demoFile.Delete();
+					demoFile = archive.CreateEntry(path_in_zip);
 				}
 				using (var entryStream = demoFile.Open())
 					entryStream.Write(data);

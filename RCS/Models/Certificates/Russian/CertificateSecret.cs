@@ -62,11 +62,19 @@ namespace RCS.Models.Certificates.Russian
             using (RSA rsa = RSA.Create())
             {
                 rsa.ImportRSAPrivateKey(PrivateKey, out _);
-
                 byte[] signature = rsa.SignData(data, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
 				return signature;
             }
         }
+		public byte[] Sign(Stream data)
+		{
+			using (RSA rsa = RSA.Create())
+			{
+				rsa.ImportRSAPrivateKey(PrivateKey, out _);
+				byte[] signature = rsa.SignData(data, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+				return signature;
+			}
+		}
 		public void Init(string Name, int KeySize = 2048)
 		{
 			Certificate.Info.Name = Name;
