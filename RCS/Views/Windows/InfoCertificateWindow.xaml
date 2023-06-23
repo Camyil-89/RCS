@@ -118,6 +118,8 @@
 									   Text="Дата окончания"/>
 							<DatePicker FontSize="14"
 										Grid.Column="1"
+										Tag="{Binding IsOkTime}"
+										Style="{StaticResource DatePickerRedIfTag1}"
 										SelectedDate="{Binding Certificate.Info.DateDead}"/>
 						</Grid>
 						<Grid Margin="0 0 0 2">

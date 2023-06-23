@@ -26,6 +26,13 @@ namespace RCS.ViewModels.Windows
 		#endregion
 
 
+		#region IsOkTime: Description
+		/// <summary>Description</summary>
+		private string _IsOkTime;
+		/// <summary>Description</summary>
+		public string IsOkTime { get => _IsOkTime; set => Set(ref _IsOkTime, value); }
+		#endregion
+
 		#region VisibilitySelfSign: Description
 		/// <summary>Description</summary>
 		private Visibility _VisibilitySelfSign = Visibility.Collapsed;
@@ -72,6 +79,14 @@ namespace RCS.ViewModels.Windows
 			VisibilitySelfSign = certificate.Info.UID == certificate.Info.MasterUID ? Visibility.Visible: Visibility.Collapsed;
 			VisibilityParentFind = certificate.Info.UID != certificate.Info.MasterUID ? Visibility.Visible: Visibility.Collapsed;
 
+			if (certificate.Info.DateDead < DateTime.Now)
+			{
+				StatusCertificate = "Недоверенный";
+				IsTrusted = "0";
+				IsOkTime = "0";
+				return;
+			}
+
 			if (VisibilitySelfSign == Visibility.Visible)
 			{
 				StatusCertificate = "Доверенный";
@@ -109,8 +124,8 @@ namespace RCS.ViewModels.Windows
 		{
 			try
 			{
-				var root = Settings.Instance.CertificateStore.FindMasterCertificate(Certificate);
-				Service.UI.WindowManager.ShowInfoAboutCertificate(root);
+				var root = Settings.Instance.CertificateStore.GetItem(Certificate.Info.MasterUID);
+				Service.UI.WindowManager.ShowInfoAboutCertificate(root.Certificate.Certificate);
 			}
 			catch (Exception ex) { MessageBoxHelper.WarningShow($"Не удалось загрузить сертификат!"); }
 		}
