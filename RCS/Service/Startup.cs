@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 
 namespace RCS.Service
@@ -29,6 +30,7 @@ namespace RCS.Service
 
 			Log.WriteLine($"Startup.Init",LogLevel.Warning);
 			App.Current.MainWindow.Loaded += Service.Startup.MainWindow_Loaded;
+			App.Current.MainWindow.Closed += MainWindow_Closed;
 
 			NavigationCommands.BrowseBack.InputGestures.Clear();
 			NavigationCommands.BrowseForward.InputGestures.Clear();
@@ -49,6 +51,15 @@ namespace RCS.Service
 
 			Navigate.SelectMenu(App.Host.Services.GetRequiredService<CreateCertificatePage>());
 		}
+
+		private static void MainWindow_Closed(object? sender, EventArgs e)
+		{
+			foreach (Window window in App.Current.Windows)
+			{
+				window.Close();
+			}
+		}
+
 		public static void MainWindow_Loaded(object sender, System.Windows.RoutedEventArgs e)
 		{
 			Log.WriteLine($"Startup.MainWindow_Loaded", LogLevel.Warning);

@@ -20,6 +20,13 @@ namespace RCS.Models.Certificates
 		/// <summary>Description</summary>
 		public ObservableCollection<StoreItem> Certificates { get => _Certificates; set => Set(ref _Certificates, value); }
 		#endregion
+
+		#region CertificatesView: Description
+		/// <summary>Description</summary>
+		private ObservableCollection<StoreItem> _CertificatesView = new ObservableCollection<StoreItem>();
+		/// <summary>Description</summary>
+		public ObservableCollection<StoreItem> CertificatesView { get => _CertificatesView; set => Set(ref _CertificatesView, value); }
+		#endregion
 		public void Add(Russian.CertificateSecret certificate)
 		{
 			Certificates.Add(new StoreItem() { Certificate = certificate });
@@ -31,6 +38,7 @@ namespace RCS.Models.Certificates
 		public void Load()
 		{
 			Certificates.Clear();
+			CertificatesView.Clear();
 			List<string> corrupt = new List<string>();
 			foreach (var path in Directory.GetFiles(XmlProvider.PathToTrustedCertificates))
 			{
@@ -46,6 +54,7 @@ namespace RCS.Models.Certificates
 			for (int i = 0; i < Certificates.Count; i++)
 			{
 				Validate();
+				CertificatesView.Add(Certificates[i]);
 			}
 			List<StoreItem> remove = new List<StoreItem>();
 			foreach (var item in Certificates)

@@ -1,0 +1,145 @@
+﻿<Window x:Class="RCS.Views.Windows.InfoCertificateWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:RCS.Views.Windows"
+        xmlns:vm="clr-namespace:RCS.ViewModels.Windows"
+        mc:Ignorable="d"
+        Title="Русский стандарт сертификации | просмотр сертификата"
+		Height="600"
+		Width="400"
+		ResizeMode="CanMinimize"
+        WindowStartupLocation="CenterScreen">
+	<Window.DataContext>
+		<vm:InfoCertificateWindowVM/>
+	</Window.DataContext>
+	<Grid>
+		<ScrollViewer>
+			<StackPanel Orientation="Vertical">
+				<GroupBox Header="сертификат">
+					<StackPanel Orientation="Vertical">
+						<Grid Margin="0 0 0 2"
+							  Visibility="{Binding VisibilitySelfSign}"
+							  d:Visibility="Visible">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="65*"/>
+								<ColumnDefinition Width="35*"/>
+							</Grid.ColumnDefinitions>
+							<TextBlock FontSize="14"
+									   VerticalAlignment="Center"
+									   Text="Самоподписанный"/>
+							<TextBox FontSize="14"
+								Grid.Column="1"
+									  IsReadOnly="True"
+									 HorizontalContentAlignment="Center"
+									 Text="Да"/>
+						</Grid>
+						<Grid Margin="0 0 0 2">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="65*"/>
+								<ColumnDefinition Width="35*"/>
+							</Grid.ColumnDefinitions>
+							<TextBlock FontSize="14"
+									   VerticalAlignment="Center"
+									   Text="Статус"/>
+							<TextBox FontSize="14"
+								Grid.Column="1"
+									  IsReadOnly="True"
+									 HorizontalContentAlignment="Center"
+									 Tag="{Binding IsTrusted}"
+									 Style="{StaticResource RedIfTag1}"
+									 Text="{Binding StatusCertificate}"/>
+						</Grid>
+						<Grid Margin="0 0 0 2"
+							  Visibility="{Binding VisibilityParentFind}"
+							  d:Visibility="Visible">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="65*"/>
+								<ColumnDefinition Width="35*"/>
+							</Grid.ColumnDefinitions>
+							<TextBlock FontSize="14"
+									   VerticalAlignment="Center"
+									   Text="Родитель"/>
+							<Button FontSize="14"
+									Grid.Column="1"
+									Command="{Binding FindMasterCommand}"
+									Content="Найти"/>
+						</Grid>
+					</StackPanel>
+				</GroupBox>
+				<GroupBox Margin="0 0 0 2" Header="Базовая информация сертификата">
+					<StackPanel Orientation="Vertical">
+						<Grid Margin="0 0 0 2">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="65*"/>
+								<ColumnDefinition Width="35*"/>
+							</Grid.ColumnDefinitions>
+							<TextBlock FontSize="14"
+									   VerticalAlignment="Center"
+									   Text="Кому выдан"/>
+							<TextBox FontSize="14"
+								Grid.Column="1"
+									  IsReadOnly="True"
+									 Text="{Binding Certificate.Info.Name}"/>
+						</Grid>
+						<Grid Margin="0 0 0 2">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="65*"/>
+								<ColumnDefinition Width="35*"/>
+							</Grid.ColumnDefinitions>
+							<TextBlock FontSize="14"
+									   VerticalAlignment="Center"
+									   Text="Кем выдан"/>
+							<TextBox FontSize="14"
+								Grid.Column="1"
+									  IsReadOnly="True"
+									 Text="{Binding Certificate.Info.Master}"/>
+						</Grid>
+						<Grid Margin="0 0 0 2">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="65*"/>
+								<ColumnDefinition Width="35*"/>
+							</Grid.ColumnDefinitions>
+							<TextBlock FontSize="14"
+									   VerticalAlignment="Center"
+									   Text="Дата создания"/>
+							<DatePicker FontSize="14"
+										Grid.Column="1"
+										SelectedDate="{Binding Certificate.Info.DateCreate}"/>
+						</Grid>
+						<Grid Margin="0 0 0 2">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="65*"/>
+								<ColumnDefinition Width="35*"/>
+							</Grid.ColumnDefinitions>
+							<TextBlock FontSize="14"
+									   VerticalAlignment="Center"
+									   Text="Дата окончания"/>
+							<DatePicker FontSize="14"
+										Grid.Column="1"
+										SelectedDate="{Binding Certificate.Info.DateDead}"/>
+						</Grid>
+						<Grid Margin="0 0 0 2">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="65*"/>
+								<ColumnDefinition Width="35*"/>
+							</Grid.ColumnDefinitions>
+							<TextBlock FontSize="14"
+									   VerticalAlignment="Center"
+									   Text="Версия"/>
+							<TextBox FontSize="14"
+								Grid.Column="1"
+									  IsReadOnly="True"
+									 Text="{Binding Certificate.Info.Version}"/>
+						</Grid>
+					</StackPanel>
+				</GroupBox>
+				<GroupBox Header="Дополнительная информция сертификата">
+					<ItemsControl ItemsSource="{Binding Panels}"/>
+				</GroupBox>
+			</StackPanel>
+		</ScrollViewer>
+
+	</Grid>
+</Window>

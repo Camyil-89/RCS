@@ -80,6 +80,7 @@ namespace RCS.Service.Certificate
 			x.Info = info;
 			var cert_1 = RCSCreateCertificate(x);
 			//cert_1.SaveToFile("test");
+			cert_1.Certificate.SaveToFile("test");
 
 			var cert_2 = RCSCreateCertificate(new CreateSettingsCertificate() { MasterCertificate = cert_1 });
 			Console.WriteLine(cert_1.Certificate.Verify(cert_2.Certificate.Info.RawByte(), cert_2.Certificate.Sign));

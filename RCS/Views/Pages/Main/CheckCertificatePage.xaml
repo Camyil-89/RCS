@@ -10,9 +10,22 @@
 	  d:DesignWidth="650"
 	  d:Background="White"
 	  DataContext="{Binding CheckCertificatePageVM, Source={StaticResource Locator}}">
-	<Grid>
-		<Button Style="{StaticResource BaseButton}"
+	<Grid Margin="2">
+		<Grid>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="25"/>
+				<RowDefinition/>
+			</Grid.RowDefinitions>
+			<StackPanel Orientation="Horizontal"
+						Grid.Row="0">
+				<Button Style="{StaticResource BaseButton}"
 				Content="Проверить"
 				Command="{Binding CheckCertCommand}"/>
+				<Button Style="{StaticResource BaseButton}"
+				Content="Просмотреть"
+						Margin="5 0 0 0"
+				Command="{Binding ViewInfoCertificateCommand}"/>
+			</StackPanel>
+		</Grid>
 	</Grid>
 </Page>

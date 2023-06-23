@@ -24,10 +24,6 @@ namespace RCS.ViewModels.Pages.Main
 		#endregion
 
 		#region Commands
-		#endregion
-
-		#region Functions
-
 		#region CheckCertCommand: Description
 		private ICommand _CheckCertCommand;
 		public ICommand CheckCertCommand => _CheckCertCommand ??= new LambdaCommand(OnCheckCertCommandExecuted, CanCheckCertCommandExecute);
@@ -58,6 +54,37 @@ namespace RCS.ViewModels.Pages.Main
 			}
 		}
 		#endregion
+
+
+		#region ViewInfoCertificateCommand: Description
+		private ICommand _ViewInfoCertificateCommand;
+		public ICommand ViewInfoCertificateCommand => _ViewInfoCertificateCommand ??= new LambdaCommand(OnViewInfoCertificateCommandExecuted, CanViewInfoCertificateCommandExecute);
+		private bool CanViewInfoCertificateCommandExecute(object e) => true;
+		private void OnViewInfoCertificateCommandExecuted(object e)
+		{
+			CommonOpenFileDialog dialog = new CommonOpenFileDialog();
+			dialog.IsFolderPicker = false;
+			dialog.InitialDirectory = XmlProvider.PathToTrustedCertificates;
+			dialog.Multiselect = false;
+
+			CommonFileDialogFilter filter = new CommonFileDialogFilter("Файлы сертификатов", "*.сертификат");
+			dialog.Filters.Add(filter);
+			if (dialog.ShowDialog() == CommonFileDialogResult.Ok && dialog.FileName.EndsWith("сертификат"))
+			{
+				try
+				{
+					var cert = Service.Certificate.CertificateProvider.RCSLoadCertificate(dialog.FileName);
+					Service.UI.WindowManager.ShowInfoAboutCertificate(cert);
+				}
+				catch (Exception ex) { MessageBoxHelper.WarningShow($"Не удалось загрузить сертификат!\n\n{dialog.FileName}"); }
+			}
+		}
+		#endregion
+		#endregion
+
+		#region Functions
+
+
 		#endregion
 	}
 }
