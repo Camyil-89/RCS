@@ -94,6 +94,7 @@ namespace RCS.Models.Certificates.Russian
 			Certificate.Info.Name = Name;
 			using (RSA rsa = RSA.Create(KeySize))
 			{
+				//rsa.ImportParameters(new RSAParameters() { Exponent = new byte[] { 1, 0, 1 } });
 				Certificate.Info.PublicKey = rsa.ExportRSAPublicKey();
 				PrivateKey = rsa.ExportRSAPrivateKey();
 			}
@@ -103,6 +104,7 @@ namespace RCS.Models.Certificates.Russian
 			Certificate.Info.Name = Name;
 			using (RSA rsa = RSA.Create(KeySize))
 			{
+				//rsa.ImportParameters(new RSAParameters() { Exponent = new byte[] { 1, 0, 1 } });
 				Certificate.Info.PublicKey = rsa.ExportRSAPublicKey();
 				PrivateKey = rsa.ExportRSAPrivateKey();
 			}

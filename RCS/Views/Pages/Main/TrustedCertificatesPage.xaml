@@ -4,11 +4,37 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:RCS.Views.Pages.Main"
+      xmlns:ui="clr-namespace:RCS.Service.UI"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
-      Title="TrustedCertificates">
-
-    <Grid Background="Red">
-        
+      Title="TrustedCertificates"
+      DataContext="{Binding TrustedCertificatesPageVM, Source={StaticResource Locator}}">
+    <Page.Resources>
+        <ui:ValidTypeDescriptionConverter x:Key="ValidTypeDescriptionConverter"/>
+    </Page.Resources>
+    <Grid Margin="2">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="25"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <StackPanel Orientation="Horizontal"
+                    Grid.Row="0"
+                    VerticalAlignment="Center">
+            <Button Content="Обновить"
+                    Command="{Binding UpdateTrustedCommand}"
+                    Style="{StaticResource BaseButton}"/>
+        </StackPanel>
+        <Grid Grid.Row="1" Margin="0 2 0 0">
+            <DataGrid ItemsSource="{Binding Settings.CertificateStore.CertificatesView}"
+                      IsReadOnly="True"
+                      FontSize="14"
+                      AutoGenerateColumns="False">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Кому выдан" Binding="{Binding Certificate.Certificate.Info.Name}"/>
+                    <DataGridTextColumn Header="Кем выдан" Binding="{Binding Certificate.Certificate.Info.Master}"/>
+                    <DataGridTextColumn Header="Статус" Binding="{Binding ValidType, Converter={StaticResource ValidTypeDescriptionConverter}}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
     </Grid>
 </Page>

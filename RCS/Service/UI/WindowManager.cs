@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace RCS.Service.UI
 {
@@ -19,6 +20,21 @@ namespace RCS.Service.UI
 			vm.Init(certificate);
 
 			window.Show();
+		}
+		public static Models.Certificates.Russian.CertificateAttribute ShowAddAttributeWindow(Models.Certificates.Russian.TypeAttribute type)
+		{
+			Views.Windows.AddAttributeWindow window = new Views.Windows.AddAttributeWindow();
+			ViewModels.Windows.AddAttributeWindowVM vm = new ViewModels.Windows.AddAttributeWindowVM();
+			window.DataContext = vm;
+
+			vm.Init(type);
+			vm.Window = window;
+
+			window.ShowDialog();
+			if (vm.IsConfirm)
+				return vm.CertificateAttribute;
+			else
+				return null;
 		}
 	}
 }

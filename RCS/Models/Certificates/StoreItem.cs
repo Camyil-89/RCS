@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,8 +9,11 @@ namespace RCS.Models.Certificates
 {
 	public enum ValidType: byte
 	{
+		[Description("Недействителен")]
 		NotValid = 0,
+		[Description("Действителен")]
 		Valid = 1,
+		[Description("Самоподписанный")]
 		SelfValid = 2,
 	}
 	public class StoreItem: Base.ViewModel.BaseViewModel

@@ -10,6 +10,7 @@ using RCS.ViewModels.Windows;
 using RCS.Views.Pages.Main;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -79,6 +80,12 @@ namespace RCS.ViewModels.Pages.Main
 			}
 		}
 		#endregion
+		#region Panels: Description
+		/// <summary>Description</summary>
+		private ObservableCollection<StackPanel> _Panels = new ObservableCollection<StackPanel>();
+		/// <summary>Description</summary>
+		public ObservableCollection<StackPanel> Panels { get => _Panels; set => Set(ref _Panels, value); }
+		#endregion
 
 		#region EnableButtonSelectCert: Description
 		/// <summary>Description</summary>
@@ -104,35 +111,9 @@ namespace RCS.ViewModels.Pages.Main
 
 		#region Commands
 
-
-
-		//#region SelectCertMasterCommand: Description
-		//private ICommand _SelectCertMasterCommand;
-		//public ICommand SelectCertMasterCommand => _SelectCertMasterCommand ??= new LambdaCommand(OnSelectCertMasterCommandExecuted, CanSelectCertMasterCommandExecute);
-		//private bool CanSelectCertMasterCommandExecute(object e) => true;
-		//private void OnSelectCertMasterCommandExecuted(object e)
-		//{
-		//	CommonOpenFileDialog dialog = new CommonOpenFileDialog();
-		//	dialog.IsFolderPicker = false;
-		//	dialog.InitialDirectory = XmlProvider.PathToTrustedCertificates;
-		//	dialog.Multiselect = false;
-
-		//	CommonFileDialogFilter filter = new CommonFileDialogFilter("Файлы сертификатов", "*.ссертификат");
-		//	dialog.Filters.Add(filter);
-		//	if (dialog.ShowDialog() == CommonFileDialogResult.Ok && dialog.FileName.EndsWith("ссертификат"))
-		//	{
-		//		try
-		//		{
-		//			var cert = Service.Certificate.CertificateProvider.RCSLoadCertificateSecret(dialog.FileName);
-		//			InfoSertificate.Master = cert.Certificate.Info.Master;
-		//			InfoSertificate.MasterUID = cert.Certificate.Info.MasterUID;
-
-		//		} catch (Exception ex) { MessageBoxHelper.WarningShow($"Не удалось загрузить сертификат!\n\n{dialog.FileName}"); }
-		//	}
-		//}
-		//#endregion
-
 		#region ClearInfoCommand: Description
+
+
 		private ICommand _ClearInfoCommand;
 		public ICommand ClearInfoCommand => _ClearInfoCommand ??= new LambdaCommand(OnClearInfoCommandExecuted, CanClearInfoCommandExecute);
 		private bool CanClearInfoCommandExecute(object e) => true;
@@ -141,8 +122,25 @@ namespace RCS.ViewModels.Pages.Main
 			if (MessageBoxHelper.QuestionShow("Вы уверены что хотите очистить все поля?") != System.Windows.MessageBoxResult.Yes)
 				return;
 			InfoSertificate = new CertificateInfo();
+			ViewAttributes();
 		}
 		#endregion
+
+
+		#region AddAttributeCommand: Description
+		private ICommand _AddAttributeCommand;
+		public ICommand AddAttributeCommand => _AddAttributeCommand ??= new LambdaCommand(OnAddAttributeCommandExecuted, CanAddAttributeCommandExecute);
+		private bool CanAddAttributeCommandExecute(object e) => true;
+		private void OnAddAttributeCommandExecuted(object e)
+		{
+			var att = WindowManager.ShowAddAttributeWindow(SelectedTypeAttribute);
+			if (att != null)
+				InfoSertificate.Attributes.Add(att);
+
+			ViewAttributes();
+		}
+		#endregion
+
 
 		#region CreateCertCommand: Description
 		private ICommand _CreateCertCommand;
@@ -155,6 +153,12 @@ namespace RCS.ViewModels.Pages.Main
 			dialog.Filter = "Файлы .ссертификат|*.ссертификат";
 			dialog.FileName = "Сертификат";
 			dialog.DefaultExt = ".ссертификат";
+
+			if (SelectedStoreItem == null && SelfSign == false)
+			{
+				MessageBoxHelper.WarningShow($"Выберите родительский сертификат!");
+				return;
+			}
 
 			if (dialog.ShowDialog() == true)
 			{
@@ -179,6 +183,26 @@ namespace RCS.ViewModels.Pages.Main
 			{
 
 			}
+		}
+		private void ViewAttributes()
+		{
+			Panels.Clear();
+			Panels = Service.UI.CertificateUI.RCSGenerateUIElements(InfoSertificate, true, true);
+			foreach (var i in Panels)
+			{
+				var btn = (((Grid)i.Children[0]).Children[0] as Button);
+				btn.Click += Btn_Click;
+			}
+		}
+		private void Btn_Click(object sender, System.Windows.RoutedEventArgs e)
+		{
+			var att = ((sender as Button).Tag as Models.Certificates.Russian.CertificateAttribute);
+
+			if (MessageBoxHelper.QuestionShow($"Вы уверены что хотите удалить поле?\n{att.Name} [{att.Type.Description()}]") != System.Windows.MessageBoxResult.Yes)
+				return;
+			
+			InfoSertificate.Attributes.Remove(att);
+			ViewAttributes();
 		}
 		#endregion
 	}

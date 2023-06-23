@@ -25,6 +25,7 @@
 					<Button Style="{StaticResource BaseButton}"
 							Content="Добавить"
 							Grid.Column="1"
+                            Command="{Binding AddAttributeCommand}"
 							HorizontalAlignment="Right"/>
 					<ComboBox ItemsSource="{Binding TypeAttributeCertificate}"
 						  FontSize="14"
@@ -155,7 +156,10 @@
 							</Grid>
 						</StackPanel>
 					</GroupBox>
-				</StackPanel>
+                    <GroupBox Header="Дополнительная информция сертификата">
+                        <ItemsControl ItemsSource="{Binding Panels}"/>
+                    </GroupBox>
+                </StackPanel>
 			</ScrollViewer>
 		</Grid>
 	</Grid>

@@ -41,6 +41,15 @@ namespace RCS.Models.Certificates.Russian
 		public string Name { get => _Name; set => Set(ref _Name, value); }
 		#endregion
 
+
+		#region FileName: Description
+		/// <summary>Description</summary>
+		private string _FileName;
+		/// <summary>Description</summary>
+		[XmlAttribute("Имя_файла")]	
+		public string FileName { get => _FileName; set => Set(ref _FileName, value); }
+		#endregion
+
 		#region Type: Description
 		/// <summary>Description</summary>
 		private TypeAttribute _Type;
@@ -71,13 +80,9 @@ namespace RCS.Models.Certificates.Russian
 				{
 					return GetDoubleDataSection(double.Parse(Data.ToString()));
 				}
-				//else if (Data is int)
-				//{
-				//	return GetIntDataSection((int)Data);
-				//}
 				else
 				{
-					return null; // Логика для других типов данных
+					return null;
 				}
 				return null;
 			}
@@ -99,10 +104,6 @@ namespace RCS.Models.Certificates.Russian
 				{
 					Data = GetDoubleDataFromSection(value);
 				}
-				//else if (Type == TypeAttribute.Int)
-				//{
-				//	Data = GetIntDataFromSection(value);
-				//}
 			}
 		}
 		#region Attribute: Description
@@ -145,17 +146,6 @@ namespace RCS.Models.Certificates.Russian
 		private double GetDoubleDataFromSection(XmlCDataSection section)
 		{
 			return double.Parse(section.Value);
-		}
-
-		private XmlCDataSection GetIntDataSection(int number)
-		{
-			var document = new XmlDocument();
-			return document.CreateCDataSection(number.ToString());
-		}
-
-		private int GetIntDataFromSection(XmlCDataSection section)
-		{
-			return int.Parse(section.Value);
 		}
 	}
 	[XmlType(TypeName ="Минимальная")]
