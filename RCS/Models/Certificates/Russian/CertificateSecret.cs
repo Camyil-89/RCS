@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Security.AccessControl;
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Markup;
@@ -32,18 +33,18 @@ namespace RCS.Models.Certificates.Russian
 		/// <summary>Description</summary>
 		[XmlElement("Сертификат")]
         public Certificate Certificate { get => _Certificate; set => Set(ref _Certificate, value); }
-        #endregion
+		#endregion
 
 		public void SignZipFile(string path)
 		{
-			XmlProvider.DeleteEntryzip(path, "RCS_Certificate_metadata.сертификат");
-			XmlProvider.DeleteEntryzip(path, "RCS_Certificate_metadata.подпись");
+			XmlProvider.DeleteEntryzip(path, XmlProvider.NameFileCertificateInZip);
+			XmlProvider.DeleteEntryzip(path, XmlProvider.NameFileCertificateSignInZip);
 
 			var stream = new FileStream(path, FileMode.Open);
 			var sign = Sign(stream);
 			stream.Close();
-			XmlProvider.SaveInzip<Models.Certificates.Russian.Certificate>(path, "RCS_Certificate_metadata.сертификат", Certificate);
-			XmlProvider.WriteInZip(path, "RCS_Certificate_metadata.подпись", sign);
+			XmlProvider.SaveInzip<Models.Certificates.Russian.Certificate>(path, XmlProvider.NameFileCertificateInZip, Certificate);
+			XmlProvider.WriteInZip(path, XmlProvider.NameFileCertificateSignInZip, sign);
 		}
 		public void SignSelf()
 		{
@@ -73,7 +74,7 @@ namespace RCS.Models.Certificates.Russian
 		}
 		public byte[] Sign(byte[] data)
         {
-            using (RSA rsa = RSA.Create())
+            using (RSA rsa = RSA.Create(Certificate.LengthKey))
             {
                 rsa.ImportRSAPrivateKey(PrivateKey, out _);
                 byte[] signature = rsa.SignData(data, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
@@ -82,7 +83,7 @@ namespace RCS.Models.Certificates.Russian
         }
 		public byte[] Sign(Stream data)
 		{
-			using (RSA rsa = RSA.Create())
+			using (RSA rsa = RSA.Create(Certificate.LengthKey))
 			{
 				rsa.ImportRSAPrivateKey(PrivateKey, out _);
 				byte[] signature = rsa.SignData(data, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
@@ -92,23 +93,31 @@ namespace RCS.Models.Certificates.Russian
 		public void Init(string Name, int KeySize = 2048)
 		{
 			Certificate.Info.Name = Name;
-			using (RSA rsa = RSA.Create(KeySize))
+			Certificate.LengthKey= KeySize;
+			using (RSA rsa = RSA.Create(Certificate.LengthKey))
 			{
-				//rsa.ImportParameters(new RSAParameters() { Exponent = new byte[] { 1, 0, 1 } });
+				RSAParameters key = rsa.ExportParameters(true);
+				key.Exponent = new byte[] { 1, 0, 1 }; // 65537
+
+				rsa.ImportParameters(key);
+
 				Certificate.Info.PublicKey = rsa.ExportRSAPublicKey();
 				PrivateKey = rsa.ExportRSAPrivateKey();
 			}
 		}
-		public void Init(CertificateSecret certificateSecret, string Name, int KeySize = 2048)
+		public void Init(CertificateSecret certificateSecret, int KeySize = 2048)
 		{
-			Certificate.Info.Name = Name;
-			using (RSA rsa = RSA.Create(KeySize))
+			Certificate.LengthKey = KeySize;
+			using (RSA rsa = RSA.Create(Certificate.LengthKey))
 			{
-				//rsa.ImportParameters(new RSAParameters() { Exponent = new byte[] { 1, 0, 1 } });
+				RSAParameters key = rsa.ExportParameters(true);
+				key.Exponent = new byte[] { 1, 0, 1 }; // 65537
+
+				rsa.ImportParameters(key);
+
 				Certificate.Info.PublicKey = rsa.ExportRSAPublicKey();
 				PrivateKey = rsa.ExportRSAPrivateKey();
 			}
-			Certificate.Info.Master = certificateSecret.Certificate.Info.Name;
 			Certificate.Sign = certificateSecret.Sign(Certificate.Info.RawByte());
 		}
 

@@ -4,41 +4,33 @@
 	  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
 	  xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
 	  xmlns:local="clr-namespace:RCS.Views.Pages.Main"
+	  xmlns:CUIS="clr-namespace:RCS.Service.UI.Selector"
+	  xmlns:CUI="clr-namespace:RCS.Service.UI"
 	  mc:Ignorable="d" 
 	  d:DesignHeight="450" d:DesignWidth="650"
 	  Title="CreateCertificate"
 	  d:Background="White"
 	  DataContext="{Binding CreateCertificatePageVM, Source={StaticResource Locator}}">
-
 	<Grid Margin="2">
 		<Grid.ColumnDefinitions>
-			<ColumnDefinition/>
+			<ColumnDefinition Width="250"/>
 			<ColumnDefinition/>
 		</Grid.ColumnDefinitions>
 		<StackPanel Orientation="Vertical">
-			<GroupBox Header="Добавление новых полей">
+			<GroupBox Header="Получить .сертификат из .ссертификат">
 				<Grid>
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition/>
-						<ColumnDefinition/>
-					</Grid.ColumnDefinitions>
 					<Button Style="{StaticResource BaseButton}"
-							Content="Добавить"
-							Grid.Column="1"
-                            Command="{Binding AddAttributeCommand}"
-							HorizontalAlignment="Right"/>
-					<ComboBox ItemsSource="{Binding TypeAttributeCertificate}"
-						  FontSize="14"
-						  DisplayMemberPath="Value"
-						  SelectedValuePath="Key"
-						  SelectedValue="{Binding SelectedTypeAttribute}"/>
+							Content="Выбрать"
+							Grid.Column="0"
+                            Command="{Binding CreateCertificateFromSecretCommand}"
+							HorizontalAlignment="Left"/>
 				</Grid>
 			</GroupBox>
 		</StackPanel>
 		<Grid Grid.Column="1">
 			<ScrollViewer>
 				<StackPanel Orientation="Vertical">
-					<Grid>
+					<Grid Margin="5 2 5 2">
 						<Grid.ColumnDefinitions>
 							<ColumnDefinition/>
 							<ColumnDefinition/>
@@ -53,8 +45,42 @@
 								HorizontalAlignment="Right"
 						Command="{Binding ClearInfoCommand}"/>
 					</Grid>
+					<GroupBox Header="Добавление новых полей">
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition/>
+								<ColumnDefinition/>
+							</Grid.ColumnDefinitions>
+							<Button Style="{StaticResource BaseButton}"
+							Content="Добавить"
+							Grid.Column="1"
+                            Command="{Binding AddAttributeCommand}"
+							HorizontalAlignment="Right"/>
+							<ComboBox ItemsSource="{Binding TypeAttributeCertificate}"
+						  FontSize="14"
+						  DisplayMemberPath="Value"
+						  SelectedValuePath="Key"
+						  SelectedValue="{Binding SelectedTypeAttribute}"/>
+						</Grid>
+					</GroupBox>
 					<GroupBox Header="Обязательные поля">
 						<StackPanel Orientation="Vertical">
+							<GroupBox Header="Ключ"
+									  Margin="0 0 0 2">
+								<Grid>
+									<Grid.ColumnDefinitions>
+										<ColumnDefinition/>
+										<ColumnDefinition/>
+									</Grid.ColumnDefinitions>
+									<TextBlock FontSize="14"
+									   VerticalAlignment="Center"
+									   Text="Размер ключа"/>
+									<ComboBox Grid.Column="1"
+											  FontSize="14"
+											  ItemsSource="{Binding KeySizeList}"
+											  SelectedItem="{Binding SelectedKeySize}"/>
+								</Grid>
+							</GroupBox>
 							<Grid Margin="0 0 0 2">
 								<Grid.ColumnDefinitions>
 									<ColumnDefinition/>
@@ -77,24 +103,12 @@
 											IsChecked="{Binding SelfSign}"
 											VerticalContentAlignment="Center"
 											Margin="0 0 0 5"/>
-											<!--<Button Style="{StaticResource BaseButton}"
+											<Button Style="{StaticResource BaseButton}"
 												HorizontalAlignment="Right"
 												Width="150"
 												Command="{Binding SelectCertMasterCommand}"
 												IsEnabled="{Binding EnableButtonSelectCert}"
-												Content="Выбрать сертификат"/>-->
-											<ComboBox FontSize="14"
-													  ItemsSource="{Binding Settings.CertificateStore.Certificates}"
-													  IsEnabled="{Binding EnableButtonSelectCert}"
-													  SelectedItem="{Binding SelectedStoreItem}">
-												<ComboBox.ItemTemplate>
-													<DataTemplate>
-														<StackPanel Orientation="Horizontal">
-															<TextBlock Text="{Binding Certificate.Certificate.Info.Name}"/>
-														</StackPanel>
-													</DataTemplate>
-												</ComboBox.ItemTemplate>
-											</ComboBox>
+												Content="Выбрать сертификат"/>
 											<GroupBox Header="Сертификат"
 												  IsEnabled="{Binding EnableButtonSelectCert}">
 												<StackPanel Orientation="Vertical">
@@ -108,7 +122,20 @@
 												 Text="Кому выдан"/>
 														<TextBox FontSize="14"
 													 IsReadOnly="True"
-																 Text="{Binding SelectedStoreItem.Certificate.Certificate.Info.Master}"
+																 Text="{Binding SelectedCertificate.Certificate.Info.Name}"
+													 Grid.Column="1"/>
+													</Grid>
+													<Grid Margin="0 5 0 2">
+														<Grid.ColumnDefinitions>
+															<ColumnDefinition/>
+															<ColumnDefinition/>
+														</Grid.ColumnDefinitions>
+														<TextBlock FontSize="14"
+												 VerticalAlignment="Center"
+												 Text="Кем выдан"/>
+														<TextBox FontSize="14"
+													 IsReadOnly="True"
+																 Text="{Binding SelectedCertificate.Certificate.Info.Master}"
 													 Grid.Column="1"/>
 													</Grid>
 													<Grid Margin="0 5 0 2">
@@ -156,10 +183,189 @@
 							</Grid>
 						</StackPanel>
 					</GroupBox>
-                    <GroupBox Header="Дополнительная информция сертификата">
-                        <ItemsControl ItemsSource="{Binding Panels}"/>
-                    </GroupBox>
-                </StackPanel>
+					<GroupBox Header="Дополнительная информция сертификата">
+						<ItemsControl ItemsSource="{Binding AttributeView}">
+							<ItemsControl.ItemTemplateSelector>
+								<CUIS:AttributeTypeSelector>
+									<CUIS:AttributeTypeSelector.TemplateString>
+										<DataTemplate>
+											<Grid Margin="0 0 0 3">
+												<Grid.ColumnDefinitions>
+													<ColumnDefinition />
+													<ColumnDefinition Width="120"/>
+													<ColumnDefinition Width="25"/>
+													<ColumnDefinition Width="36"/>
+													<ColumnDefinition Width="36"/>
+												</Grid.ColumnDefinitions>
+												<TextBlock FontSize="14"
+														   VerticalAlignment="Center"
+														   Text="{Binding Attribute.Name}"/>
+												<TextBox FontSize="14"
+														 Grid.Column="1"
+														 VerticalAlignment="Center"
+														 VerticalContentAlignment="Center"
+														 Text="{Binding Str}"/>
+												<Button Content="X"
+														Height="20"
+														Width="20"
+														Command="{Binding CreateCertificatePageVM.DeleteAttributeCommand, Source={StaticResource Locator}}"
+														CommandParameter="{Binding Attribute}"
+														Grid.Column="2"/>
+												<Button Content="Выше"
+														Height="20"
+														Width="35"
+														Command="{Binding CreateCertificatePageVM.MoveAttributeUpCommand, Source={StaticResource Locator}}"
+														CommandParameter="{Binding Attribute}"
+														Grid.Column="3"/>
+												<Button Content="Ниже"
+														Height="20"
+														Width="35"
+														Command="{Binding CreateCertificatePageVM.MoveAttributeDownCommand, Source={StaticResource Locator}}"
+														CommandParameter="{Binding Attribute}"
+														Grid.Column="4"/>
+											</Grid>
+										</DataTemplate>
+									</CUIS:AttributeTypeSelector.TemplateString>
+									<CUIS:AttributeTypeSelector.TemplateNumber>
+										<DataTemplate>
+											<Grid Margin="0 0 0 3">
+												<Grid.ColumnDefinitions>
+													<ColumnDefinition />
+													<ColumnDefinition Width="120"/>
+													<ColumnDefinition Width="25"/>
+													<ColumnDefinition Width="36"/>
+													<ColumnDefinition Width="36"/>
+												</Grid.ColumnDefinitions>
+												<TextBlock FontSize="14"
+														   VerticalAlignment="Center"
+														   Text="{Binding Attribute.Name}"/>
+												<TextBox FontSize="14"
+														 Grid.Column="1"
+														 VerticalAlignment="Center"
+														 VerticalContentAlignment="Center"
+														 Text="{Binding Number}"/>
+												<Button Content="X"
+														Height="20"
+														Width="20"
+														Command="{Binding CreateCertificatePageVM.DeleteAttributeCommand, Source={StaticResource Locator}}"
+														CommandParameter="{Binding Attribute}"
+														Grid.Column="2"/>
+												<Button Content="Выше"
+														Height="20"
+														Width="35"
+														Command="{Binding CreateCertificatePageVM.MoveAttributeUpCommand, Source={StaticResource Locator}}"
+														CommandParameter="{Binding Attribute}"
+														Grid.Column="3"/>
+												<Button Content="Ниже"
+														Height="20"
+														Width="35"
+														Command="{Binding CreateCertificatePageVM.MoveAttributeDownCommand, Source={StaticResource Locator}}"
+														CommandParameter="{Binding Attribute}"
+														Grid.Column="4"/>
+											</Grid>
+										</DataTemplate>
+									</CUIS:AttributeTypeSelector.TemplateNumber>
+									<CUIS:AttributeTypeSelector.TemplateDate>
+										<DataTemplate>
+											<Grid Margin="0 0 0 3">
+												<Grid.ColumnDefinitions>
+													<ColumnDefinition />
+													<ColumnDefinition Width="120"/>
+													<ColumnDefinition Width="25"/>
+													<ColumnDefinition Width="36"/>
+													<ColumnDefinition Width="36"/>
+												</Grid.ColumnDefinitions>
+												<TextBlock FontSize="14"
+														   VerticalAlignment="Center"
+														   Text="{Binding Attribute.Name}"/>
+												<DatePicker FontSize="14"
+															Grid.Column="1"
+															SelectedDate="{Binding Date}"/>
+												<Button Content="X"
+														Height="20"
+														Width="20"
+														Command="{Binding CreateCertificatePageVM.DeleteAttributeCommand, Source={StaticResource Locator}}"
+														CommandParameter="{Binding Attribute}"
+														Grid.Column="2"/>
+												<Button Content="Выше"
+														Height="20"
+														Width="35"
+														Command="{Binding CreateCertificatePageVM.MoveAttributeUpCommand, Source={StaticResource Locator}}"
+														CommandParameter="{Binding Attribute}"
+														Grid.Column="3"/>
+												<Button Content="Ниже"
+														Height="20"
+														Width="35"
+														Command="{Binding CreateCertificatePageVM.MoveAttributeDownCommand, Source={StaticResource Locator}}"
+														CommandParameter="{Binding Attribute}"
+														Grid.Column="4"/>
+											</Grid>
+										</DataTemplate>
+									</CUIS:AttributeTypeSelector.TemplateDate>
+									<CUIS:AttributeTypeSelector.TemplateByteArray>
+										<DataTemplate>
+											<GroupBox>
+												<GroupBox.Header>
+													<TextBlock Text="{Binding Attribute.Name, StringFormat=Файл - }"/>
+												</GroupBox.Header>
+												<Grid Margin="0 0 0 3">
+													<Grid.ColumnDefinitions>
+														<ColumnDefinition />
+														<ColumnDefinition Width="120"/>
+														<ColumnDefinition Width="25"/>
+														<ColumnDefinition Width="35"/>
+														<ColumnDefinition Width="35"/>
+													</Grid.ColumnDefinitions>
+													<CUI:ToolTipTextBlock FontSize="14"
+																		  Text="{Binding Attribute.FileName}"
+																		  ToolTip="{Binding Attribute.FileName}"
+																		  ToolTipService.InitialShowDelay="250"
+																		  MaxWidth="130"
+																		  VerticalAlignment="Center"
+																		  TextTrimming="CharacterEllipsis"
+																		  HorizontalAlignment="Left"/>
+													<Image MaxWidth="120" MaxHeight="120" Source="{Binding Image}" Grid.Column="1"/>
+													<StackPanel Orientation="Vertical"
+																Grid.Column="2"
+																Grid.ColumnSpan="3"
+																VerticalAlignment="Center">
+														<StackPanel Orientation="Horizontal">
+															<Button Content="X"
+																	Height="20"
+																	Width="20"
+																	Margin="1 0 0 0"
+																	Command="{Binding CreateCertificatePageVM.DeleteAttributeCommand, Source={StaticResource Locator}}"
+																	CommandParameter="{Binding Attribute}"/>
+															<Button Content="Выше"
+																	Height="20"
+																	Width="35"
+																	Margin="2 0 0 0"
+																	Command="{Binding CreateCertificatePageVM.MoveAttributeUpCommand, Source={StaticResource Locator}}"
+																	CommandParameter="{Binding Attribute}"/>
+															<Button Content="Ниже"
+																	Height="20"
+																	Width="35"
+																	Margin="2 0 0 0"
+																	Command="{Binding CreateCertificatePageVM.MoveAttributeDownCommand, Source={StaticResource Locator}}"
+																	CommandParameter="{Binding Attribute}"/>
+														</StackPanel>
+														<StackPanel Margin="0 2 0 0">
+															<Button HorizontalAlignment="Stretch"
+																	Content="Изменить"
+																	Margin="1 0 0 0"
+																	Command="{Binding CreateCertificatePageVM.ChangeFileAttributeCommand, Source={StaticResource Locator}}"
+																	CommandParameter="{Binding Attribute}"/>
+														</StackPanel>
+													</StackPanel>
+												</Grid>
+											</GroupBox>
+										</DataTemplate>
+									</CUIS:AttributeTypeSelector.TemplateByteArray>
+								</CUIS:AttributeTypeSelector>
+							</ItemsControl.ItemTemplateSelector>
+						</ItemsControl>
+					</GroupBox>
+				</StackPanel>
 			</ScrollViewer>
 		</Grid>
 	</Grid>

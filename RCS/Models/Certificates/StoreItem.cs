@@ -21,9 +21,9 @@ namespace RCS.Models.Certificates
 
 		#region Certificate: Description
 		/// <summary>Description</summary>
-		private Russian.CertificateSecret _Certificate;
+		private Russian.Certificate _Certificate;
 		/// <summary>Description</summary>
-		public Russian.CertificateSecret Certificate { get => _Certificate; set => Set(ref _Certificate, value); }
+		public Russian.Certificate Certificate { get => _Certificate; set => Set(ref _Certificate, value); }
 		#endregion
 
 

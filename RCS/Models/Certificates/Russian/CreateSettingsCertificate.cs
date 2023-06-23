@@ -28,7 +28,7 @@ namespace RCS.Models.Certificates.Russian
 
 		#region SizeKey: Description
 		/// <summary>Description</summary>
-		private int _SizeKey = 2048;
+		private int _SizeKey = 15360;
 		/// <summary>Description</summary>
 		public int SizeKey { get => _SizeKey; set => Set(ref _SizeKey, value); }
 		#endregion

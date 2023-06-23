@@ -19,8 +19,8 @@ namespace RCS.Service
 	{
 		public static void WriteError(Exception er)
 		{
-			Directory.CreateDirectory($"{Directory.GetCurrentDirectory()}\\logs");
-			File.WriteAllText($"{Directory.GetCurrentDirectory()}\\logs\\{DateTime.Now.Ticks}.txt", $"{er}\n\n{er.Message}\n\n{er.StackTrace}");
+			Directory.CreateDirectory($"{XmlProvider.PathToSave}\\logs");
+			File.WriteAllText($"{XmlProvider.PathToSave}\\logs\\{DateTime.Now.Ticks}.txt", $"{er}\n\n{er.Message}\n\n{er.StackTrace}");
 			WriteLine(er, LogLevel.Error);
 		}
 		static void WriteColor(string message, ConsoleColor color)

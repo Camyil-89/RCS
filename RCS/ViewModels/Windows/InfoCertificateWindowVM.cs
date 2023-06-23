@@ -8,13 +8,14 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 using System.Windows.Input;
 using RCS.Base.Command;
+using System.IO;
+using Microsoft.Win32;
 
 namespace RCS.ViewModels.Windows
 {
-	public class InfoCertificateWindowVM: Base.ViewModel.BaseViewModel
+	public class InfoCertificateWindowVM : Base.ViewModel.BaseViewModel
 	{
 
 
@@ -25,6 +26,13 @@ namespace RCS.ViewModels.Windows
 		public Models.Certificates.Russian.Certificate Certificate { get => _Certificate; set => Set(ref _Certificate, value); }
 		#endregion
 
+
+		#region AttributeView: Description
+		/// <summary>Description</summary>
+		private ObservableCollection<Service.UI.Selector.AttriburteView> _AttributeView = new ObservableCollection<Service.UI.Selector.AttriburteView>();
+		/// <summary>Description</summary>
+		public ObservableCollection<Service.UI.Selector.AttriburteView> AttributeView { get => _AttributeView; set => Set(ref _AttributeView, value); }
+		#endregion
 
 		#region IsOkTime: Description
 		/// <summary>Description</summary>
@@ -63,56 +71,44 @@ namespace RCS.ViewModels.Windows
 		public string IsTrusted { get => _IsTrusted; set => Set(ref _IsTrusted, value); }
 		#endregion
 
-		#region Panels: Description
-		/// <summary>Description</summary>
-		private ObservableCollection<StackPanel> _Panels = new ObservableCollection<StackPanel>();
-		/// <summary>Description</summary>
-		public ObservableCollection<StackPanel> Panels { get => _Panels; set => Set(ref _Panels, value); }
-		#endregion
-
 		public void Init(Models.Certificates.Russian.Certificate certificate)
 		{
 			Certificate = certificate;
-
-			Panels = Service.UI.CertificateUI.RCSGenerateUIElements(certificate, true);
-			
-			VisibilitySelfSign = certificate.Info.UID == certificate.Info.MasterUID ? Visibility.Visible: Visibility.Collapsed;
-			VisibilityParentFind = certificate.Info.UID != certificate.Info.MasterUID ? Visibility.Visible: Visibility.Collapsed;
+			UpdateAttributeView();
+			VisibilitySelfSign = certificate.Info.UID == certificate.Info.MasterUID ? Visibility.Visible : Visibility.Collapsed;
+			VisibilityParentFind = certificate.Info.UID != certificate.Info.MasterUID ? Visibility.Visible : Visibility.Collapsed;
 
 			if (certificate.Info.DateDead < DateTime.Now)
 			{
-				StatusCertificate = "Недоверенный";
+				StatusCertificate = "Недействительный";
 				IsTrusted = "0";
 				IsOkTime = "0";
 				return;
 			}
 
-			if (VisibilitySelfSign == Visibility.Visible)
+			try
 			{
-				StatusCertificate = "Доверенный";
-				IsTrusted = "1";
-			}
-			else
-			{
-				try
+				var root = Settings.Instance.CertificateStore.FindMasterCertificate(certificate);
+				if (root == null)
 				{
-					var root = Settings.Instance.CertificateStore.FindMasterCertificate(certificate);
-					if (root == null)
+					IsTrusted = "0";
+					if (VisibilitySelfSign == Visibility.Visible)
 					{
-						StatusCertificate = "Недоверенный";
-						IsTrusted = "0";
+						StatusCertificate = "Измененный";
 						return;
 					}
-					else
-					{
-						StatusCertificate = "Доверенный";
-						IsTrusted = "1";
-						return;
-					}
+					StatusCertificate = "Недоверенный";
+					return;
 				}
-				catch (Exception ex) { }
-				StatusCertificate = "Недоверенный";
+				else
+				{
+					StatusCertificate = "Доверенный";
+					IsTrusted = "1";
+					return;
+				}
 			}
+			catch (Exception ex) { }
+			StatusCertificate = "Недоверенный";
 		}
 
 
@@ -125,10 +121,44 @@ namespace RCS.ViewModels.Windows
 			try
 			{
 				var root = Settings.Instance.CertificateStore.GetItem(Certificate.Info.MasterUID);
-				Service.UI.WindowManager.ShowInfoAboutCertificate(root.Certificate.Certificate);
+				Service.UI.WindowManager.ShowInfoAboutCertificate(root.Certificate);
 			}
 			catch (Exception ex) { MessageBoxHelper.WarningShow($"Не удалось загрузить сертификат!"); }
 		}
 		#endregion
+
+		#region UploadFileFromAttributeCommand: Description
+		private ICommand _UploadFileFromAttributeCommand;
+		public ICommand UploadFileFromAttributeCommand => _UploadFileFromAttributeCommand ??= new LambdaCommand(OnUploadFileFromAttributeCommandExecuted, CanUploadFileFromAttributeCommandExecute);
+		private bool CanUploadFileFromAttributeCommandExecute(object e) => true;
+		private void OnUploadFileFromAttributeCommandExecuted(object e)
+		{
+			try
+			{
+				var att = (e as Models.Certificates.Russian.CertificateAttribute);
+				SaveFileDialog dialog = new SaveFileDialog();
+				dialog.Title = "Выберите место сохранения";
+				dialog.FileName = att.FileName;
+
+				if (dialog.ShowDialog() == true)
+				{
+					File.WriteAllBytes(dialog.FileName, (byte[])att.Data);
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBoxHelper.WarningShow("Не удалось выгрузить!");
+			}
+		}
+		#endregion
+
+		private void UpdateAttributeView()
+		{
+			AttributeView.Clear();
+			foreach (var i in ((Models.Certificates.Russian.CertificateInfo)Certificate.Info).Attributes)
+			{
+				AttributeView.Add(new Service.UI.Selector.AttriburteView() { Attribute = i, IsChange = false });
+			}
+		}
 	}
 }

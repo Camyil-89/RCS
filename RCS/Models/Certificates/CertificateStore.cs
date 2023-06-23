@@ -28,13 +28,13 @@ namespace RCS.Models.Certificates
 		/// <summary>Description</summary>
 		public ObservableCollection<StoreItem> CertificatesView { get => _CertificatesView; set => Set(ref _CertificatesView, value); }
 		#endregion
-		public void Add(Russian.CertificateSecret certificate)
+		public void Add(Russian.Certificate certificate)
 		{
 			Certificates.Add(new StoreItem() { Certificate = certificate });
 		}
 		public StoreItem GetItem(Guid uid)
 		{
-			return Certificates.FirstOrDefault((i) => i.ValidType != ValidType.NotValid && i.Certificate.Certificate.Info.UID == uid);
+			return Certificates.FirstOrDefault((i) => i.ValidType != ValidType.NotValid && i.Certificate.Info.UID == uid);
 		}
 		public void Load()
 		{
@@ -43,11 +43,11 @@ namespace RCS.Models.Certificates
 			List<string> corrupt = new List<string>();
 			foreach (var path in Directory.GetFiles(XmlProvider.PathToTrustedCertificates))
 			{
-				if (path.EndsWith(".ссертификат") == false)
+				if (path.EndsWith(".сертификат") == false)
 					continue;
 				try
 				{
-					Certificates.Add(new StoreItem() { Certificate = XmlProvider.Load<CertificateSecret>(path) });
+					Certificates.Add(new StoreItem() { Certificate = XmlProvider.Load<Certificate>(path) });
 				}
 				catch { corrupt.Add(path); }
 			}
@@ -55,7 +55,13 @@ namespace RCS.Models.Certificates
 			for (int i = 0; i < Certificates.Count; i++)
 			{
 				Validate();
-				CertificatesView.Add(Certificates[i]);
+			}
+			foreach (var i in Certificates)
+			{
+				var root = FindMasterCertificate(i.Certificate);
+				if (root == null)
+					i.ValidType = ValidType.NotValid;
+				CertificatesView.Add(i);
 			}
 			List<StoreItem> remove = new List<StoreItem>();
 			foreach (var item in Certificates)
@@ -83,13 +89,13 @@ namespace RCS.Models.Certificates
 
 		private ValidType Valid(StoreItem item)
 		{
-			if (item.Certificate.Certificate.Info.DateDead < DateTime.Now)
+			if (item.Certificate.Info.DateDead < DateTime.Now)
 				return ValidType.NotValid;
-			if (item.Certificate.Certificate.Info.MasterUID == item.Certificate.Certificate.Info.UID)
+			if (item.Certificate.Info.MasterUID == item.Certificate.Info.UID)
 				return ValidType.SelfValid;
 			foreach (var i in Certificates)
 			{
-				if (i.Certificate.Certificate.Info.UID == item.Certificate.Certificate.Info.MasterUID)
+				if (i.Certificate.Info.UID == item.Certificate.Info.MasterUID)
 				{
 					return ValidType.Valid;
 				}
@@ -98,7 +104,7 @@ namespace RCS.Models.Certificates
 		}
 		public Certificate FindMasterCertificate(Models.Certificates.Russian.Certificate certificate)
 		{
-			if (certificate == null)
+			if (certificate == null || certificate.Info.DateDead < DateTime.Now)
 				return null;
 			if (certificate.Info.UID == certificate.Info.MasterUID)
 			{
@@ -106,8 +112,12 @@ namespace RCS.Models.Certificates
 					return null;
 				return certificate;
 			}
-
-			var cert = GetItem(certificate.Info.MasterUID).Certificate.Certificate;
+			var item = GetItem(certificate.Info.MasterUID);
+			if (item == null)
+				return null;
+			var cert = item.Certificate;
+			if (cert.Info.DateDead < DateTime.Now)
+				return null;
 			if (cert.Verify(certificate.Info.RawByte(), certificate.Sign) == false)
 				return null;
 			return FindMasterCertificate(cert);

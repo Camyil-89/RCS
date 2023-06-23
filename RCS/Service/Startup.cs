@@ -23,7 +23,7 @@ namespace RCS.Service
 
 			try
 			{
-				Service.Certificate.CertificateProvider.Test();
+				//Service.Certificate.CertificateProvider.Test();
 			}
 			catch (Exception ex) { Console.WriteLine(ex); }
 
@@ -64,10 +64,6 @@ namespace RCS.Service
 		{
 			Log.WriteLine($"Startup.MainWindow_Loaded", LogLevel.Warning);
 			Settings.Instance.CertificateStore.Load();
-			foreach (var i in Settings.Instance.CertificateStore.Certificates)
-			{
-				Console.WriteLine($">{i.ValidType}>{i.Certificate.Certificate.Info.Name};{i.Certificate.Certificate.Info.Master}");
-			}
 		}
 	}
 }

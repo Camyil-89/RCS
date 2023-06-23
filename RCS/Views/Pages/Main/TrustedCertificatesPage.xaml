@@ -30,8 +30,8 @@
                       FontSize="14"
                       AutoGenerateColumns="False">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Кому выдан" Binding="{Binding Certificate.Certificate.Info.Name}"/>
-                    <DataGridTextColumn Header="Кем выдан" Binding="{Binding Certificate.Certificate.Info.Master}"/>
+                    <DataGridTextColumn Header="Кому выдан" Binding="{Binding Certificate.Info.Name}"/>
+                    <DataGridTextColumn Header="Кем выдан" Binding="{Binding Certificate.Info.Master}"/>
                     <DataGridTextColumn Header="Статус" Binding="{Binding ValidType, Converter={StaticResource ValidTypeDescriptionConverter}}"/>
                 </DataGrid.Columns>
             </DataGrid>

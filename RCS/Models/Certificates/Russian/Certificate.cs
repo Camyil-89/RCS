@@ -190,7 +190,7 @@ namespace RCS.Models.Certificates.Russian
 
 		#region DateDead: Description
 		/// <summary>Description</summary>
-		private DateTime _DateDead = DateTime.Now + new TimeSpan(0,0,5);
+		private DateTime _DateDead = DateTime.Now + new TimeSpan(180,0,0,0,0);
 		/// <summary>Description</summary>
 		[XmlAttribute("Время_окончания")]
 		public DateTime DateDead { get => _DateDead; set => Set(ref _DateDead, value); }
@@ -252,6 +252,17 @@ namespace RCS.Models.Certificates.Russian
 		[XmlArray("Доступная_информация")]
 		public ObservableCollection<CertificateAttribute> Attributes { get => _Attributes; set => Set(ref _Attributes, value); }
 		#endregion
+
+		public void AddAttribute(CertificateAttribute attribute)
+		{
+			if (ContainsAttribute(attribute))
+				throw new Exception("Такое поле уже существует!");
+			Attributes.Add(attribute);
+		}
+		public bool ContainsAttribute(CertificateAttribute attribute)
+		{
+			return Attributes.FirstOrDefault((i) => i.Name == attribute.Name) != null;
+		}
 	}
 	[XmlType(TypeName="Сертификат")]
 	public class Certificate : Base.ViewModel.BaseViewModel
@@ -271,7 +282,15 @@ namespace RCS.Models.Certificates.Russian
         /// <summary>Description</summary>
         [XmlAttribute("Подпись")]
         public byte[] Sign { get => _Sign; set => Set(ref _Sign, value); }
-        #endregion
+		#endregion
+
+		#region LengthKey: Description
+		/// <summary>Description</summary>
+		private int _LengthKey = 2048;
+		/// <summary>Description</summary>
+		[XmlElement("Длина_ключа")]
+		public int LengthKey { get => _LengthKey; set => Set(ref _LengthKey, value); }
+		#endregion
 		public void SaveToFile(string path)
 		{
 			if (path.EndsWith(".сертификат") == false)
@@ -302,7 +321,7 @@ namespace RCS.Models.Certificates.Russian
 		}
 		public bool Verify(byte[] message, byte[] sign)
 		{
-			using (RSA rsa = RSA.Create())
+			using (RSA rsa = RSA.Create(LengthKey))
 			{
 				rsa.ImportRSAPublicKey(Info.PublicKey, out _);
 
@@ -310,5 +329,15 @@ namespace RCS.Models.Certificates.Russian
 				return isSignatureValid;
 			}
 		}
-    }
+		public bool Verify(Stream message, byte[] sign)
+		{
+			using (RSA rsa = RSA.Create(LengthKey))
+			{
+				rsa.ImportRSAPublicKey(Info.PublicKey, out _);
+
+				bool isSignatureValid = rsa.VerifyData(message, sign, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+				return isSignatureValid;
+			}
+		}
+	}
 }

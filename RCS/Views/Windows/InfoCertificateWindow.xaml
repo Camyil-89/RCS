@@ -5,6 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RCS.Views.Windows"
         xmlns:vm="clr-namespace:RCS.ViewModels.Windows"
+		xmlns:CUIS="clr-namespace:RCS.Service.UI.Selector"
+	  xmlns:CUI="clr-namespace:RCS.Service.UI"
         mc:Ignorable="d"
         Title="Русский стандарт сертификации | просмотр сертификата"
 		Height="600"
@@ -19,26 +21,10 @@
 			<StackPanel Orientation="Vertical">
 				<GroupBox Header="сертификат">
 					<StackPanel Orientation="Vertical">
-						<Grid Margin="0 0 0 2"
-							  Visibility="{Binding VisibilitySelfSign}"
-							  d:Visibility="Visible">
+						<Grid Margin="0 0 5 3">
 							<Grid.ColumnDefinitions>
-								<ColumnDefinition Width="65*"/>
-								<ColumnDefinition Width="35*"/>
-							</Grid.ColumnDefinitions>
-							<TextBlock FontSize="14"
-									   VerticalAlignment="Center"
-									   Text="Самоподписанный"/>
-							<TextBox FontSize="14"
-								Grid.Column="1"
-									  IsReadOnly="True"
-									 HorizontalContentAlignment="Center"
-									 Text="Да"/>
-						</Grid>
-						<Grid Margin="0 0 0 2">
-							<Grid.ColumnDefinitions>
-								<ColumnDefinition Width="65*"/>
-								<ColumnDefinition Width="35*"/>
+								<ColumnDefinition/>
+								<ColumnDefinition Width="160"/>
 							</Grid.ColumnDefinitions>
 							<TextBlock FontSize="14"
 									   VerticalAlignment="Center"
@@ -51,12 +37,44 @@
 									 Style="{StaticResource RedIfTag1}"
 									 Text="{Binding StatusCertificate}"/>
 						</Grid>
-						<Grid Margin="0 0 0 2"
+						<Grid Margin="0 0 5 3"
+							  Visibility="{Binding VisibilitySelfSign}"
+							  d:Visibility="Visible">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition/>
+								<ColumnDefinition Width="160"/>
+							</Grid.ColumnDefinitions>
+							<TextBlock FontSize="14"
+									   VerticalAlignment="Center"
+									   Text="Самоподписанный"/>
+							<TextBox FontSize="14"
+								Grid.Column="1"
+									  IsReadOnly="True"
+									 HorizontalContentAlignment="Center"
+									 Text="Да"/>
+						</Grid>
+						<Grid Margin="0 0 5 3"
 							  Visibility="{Binding VisibilityParentFind}"
 							  d:Visibility="Visible">
 							<Grid.ColumnDefinitions>
-								<ColumnDefinition Width="65*"/>
-								<ColumnDefinition Width="35*"/>
+								<ColumnDefinition/>
+								<ColumnDefinition Width="160"/>
+							</Grid.ColumnDefinitions>
+							<TextBlock FontSize="14"
+									   VerticalAlignment="Center"
+									   Text="Размер ключа"/>
+							<TextBox FontSize="14"
+								Grid.Column="1"
+									  IsReadOnly="True"
+									 HorizontalContentAlignment="Center"
+									 Text="{Binding Certificate.LengthKey}"/>
+						</Grid>
+						<Grid Margin="0 0 5 3"
+							  Visibility="{Binding VisibilityParentFind}"
+							  d:Visibility="Visible">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition/>
+								<ColumnDefinition Width="160"/>
 							</Grid.ColumnDefinitions>
 							<TextBlock FontSize="14"
 									   VerticalAlignment="Center"
@@ -68,12 +86,12 @@
 						</Grid>
 					</StackPanel>
 				</GroupBox>
-				<GroupBox Margin="0 0 0 2" Header="Базовая информация сертификата">
+				<GroupBox Margin="0 0 0 3" Header="Базовая информация сертификата">
 					<StackPanel Orientation="Vertical">
-						<Grid Margin="0 0 0 2">
+						<Grid Margin="0 0 5 3">
 							<Grid.ColumnDefinitions>
-								<ColumnDefinition Width="65*"/>
-								<ColumnDefinition Width="35*"/>
+								<ColumnDefinition/>
+								<ColumnDefinition Width="160"/>
 							</Grid.ColumnDefinitions>
 							<TextBlock FontSize="14"
 									   VerticalAlignment="Center"
@@ -83,10 +101,24 @@
 									  IsReadOnly="True"
 									 Text="{Binding Certificate.Info.Name}"/>
 						</Grid>
-						<Grid Margin="0 0 0 2">
+						<Grid Margin="0 0 5 3">
 							<Grid.ColumnDefinitions>
-								<ColumnDefinition Width="65*"/>
-								<ColumnDefinition Width="35*"/>
+								<ColumnDefinition/>
+								<ColumnDefinition Width="160"/>
+							</Grid.ColumnDefinitions>
+							<TextBlock FontSize="14"
+									   VerticalAlignment="Center"
+									   Margin="25 0 0 0"
+									   Text="Идентификатор"/>
+							<TextBox FontSize="14"
+								Grid.Column="1"
+									  IsReadOnly="True"
+									 Text="{Binding Certificate.Info.UID}"/>
+						</Grid>
+						<Grid Margin="0 0 5 3">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition/>
+								<ColumnDefinition Width="160"/>
 							</Grid.ColumnDefinitions>
 							<TextBlock FontSize="14"
 									   VerticalAlignment="Center"
@@ -96,10 +128,24 @@
 									  IsReadOnly="True"
 									 Text="{Binding Certificate.Info.Master}"/>
 						</Grid>
-						<Grid Margin="0 0 0 2">
+						<Grid Margin="0 0 5 3">
 							<Grid.ColumnDefinitions>
-								<ColumnDefinition Width="65*"/>
-								<ColumnDefinition Width="35*"/>
+								<ColumnDefinition/>
+								<ColumnDefinition Width="160"/>
+							</Grid.ColumnDefinitions>
+							<TextBlock FontSize="14"
+									   VerticalAlignment="Center"
+									   Margin="25 0 0 0"
+									   Text="Идентификатор"/>
+							<TextBox FontSize="14"
+								Grid.Column="1"
+									  IsReadOnly="True"
+									 Text="{Binding Certificate.Info.MasterUID}"/>
+						</Grid>
+						<Grid Margin="0 0 5 3">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition/>
+								<ColumnDefinition Width="160"/>
 							</Grid.ColumnDefinitions>
 							<TextBlock FontSize="14"
 									   VerticalAlignment="Center"
@@ -108,10 +154,10 @@
 										Grid.Column="1"
 										SelectedDate="{Binding Certificate.Info.DateCreate}"/>
 						</Grid>
-						<Grid Margin="0 0 0 2">
+						<Grid Margin="0 0 5 3">
 							<Grid.ColumnDefinitions>
-								<ColumnDefinition Width="65*"/>
-								<ColumnDefinition Width="35*"/>
+								<ColumnDefinition/>
+								<ColumnDefinition Width="160"/>
 							</Grid.ColumnDefinitions>
 							<TextBlock FontSize="14"
 									   VerticalAlignment="Center"
@@ -122,10 +168,10 @@
 										Style="{StaticResource DatePickerRedIfTag1}"
 										SelectedDate="{Binding Certificate.Info.DateDead}"/>
 						</Grid>
-						<Grid Margin="0 0 0 2">
+						<Grid Margin="0 0 5 3">
 							<Grid.ColumnDefinitions>
-								<ColumnDefinition Width="65*"/>
-								<ColumnDefinition Width="35*"/>
+								<ColumnDefinition/>
+								<ColumnDefinition Width="160"/>
 							</Grid.ColumnDefinitions>
 							<TextBlock FontSize="14"
 									   VerticalAlignment="Center"
@@ -138,7 +184,98 @@
 					</StackPanel>
 				</GroupBox>
 				<GroupBox Header="Дополнительная информция сертификата">
-					<ItemsControl ItemsSource="{Binding Panels}"/>
+					<ItemsControl ItemsSource="{Binding AttributeView}">
+						<ItemsControl.ItemTemplateSelector>
+							<CUIS:AttributeTypeSelector>
+								<CUIS:AttributeTypeSelector.TemplateString>
+									<DataTemplate>
+										<Grid Margin="0 0 5 3">
+											<Grid.ColumnDefinitions>
+												<ColumnDefinition />
+												<ColumnDefinition Width="160"/>
+											</Grid.ColumnDefinitions>
+											<TextBlock FontSize="14"
+													   VerticalAlignment="Center"
+														   Text="{Binding Attribute.Name}"/>
+											<TextBox FontSize="14"
+													 VerticalAlignment="Center"
+													 VerticalContentAlignment="Center"
+														 Grid.Column="1"
+													 IsReadOnly="True"
+														 Text="{Binding Str}"/>
+										</Grid>
+									</DataTemplate>
+								</CUIS:AttributeTypeSelector.TemplateString>
+								<CUIS:AttributeTypeSelector.TemplateNumber>
+									<DataTemplate>
+										<Grid Margin="0 0 5 3">
+											<Grid.ColumnDefinitions>
+												<ColumnDefinition />
+												<ColumnDefinition Width="160"/>
+											</Grid.ColumnDefinitions>
+											<TextBlock FontSize="14"
+													   VerticalAlignment="Center"
+														   Text="{Binding Attribute.Name}"/>
+											<TextBox FontSize="14"
+														 Grid.Column="1"
+													 VerticalAlignment="Center"
+													 VerticalContentAlignment="Center"
+													 IsReadOnly="True"
+														 Text="{Binding Number}"/>
+										</Grid>
+									</DataTemplate>
+								</CUIS:AttributeTypeSelector.TemplateNumber>
+								<CUIS:AttributeTypeSelector.TemplateDate>
+									<DataTemplate>
+										<Grid Margin="0 0 5 3">
+											<Grid.ColumnDefinitions>
+												<ColumnDefinition />
+												<ColumnDefinition Width="160"/>
+											</Grid.ColumnDefinitions>
+											<TextBlock FontSize="14"
+													   VerticalAlignment="Center"
+														   Text="{Binding Attribute.Name}"/>
+											<DatePicker FontSize="14"
+															Grid.Column="1"
+														VerticalAlignment="Center"
+															SelectedDate="{Binding Date}"/>
+										</Grid>
+									</DataTemplate>
+								</CUIS:AttributeTypeSelector.TemplateDate>
+								<CUIS:AttributeTypeSelector.TemplateByteArray>
+									<DataTemplate>
+										<GroupBox Margin="0 0 0 3">
+											<GroupBox.Header>
+												<TextBlock Text="{Binding Attribute.Name, StringFormat=Файл - }"/>
+											</GroupBox.Header>
+											<Grid>
+												<Grid.ColumnDefinitions>
+													<ColumnDefinition />
+													<ColumnDefinition Width="160"/>
+												</Grid.ColumnDefinitions>
+												<CUI:ToolTipTextBlock FontSize="14"
+																	  VerticalAlignment="Center"
+																	  HorizontalAlignment="Left"
+																		  Text="{Binding Attribute.FileName}"
+																	  TextTrimming="CharacterEllipsis"
+																		  ToolTip="{Binding Attribute.FileName}"
+																		  ToolTipService.InitialShowDelay="250"
+																		  MaxWidth="150"/>
+												<StackPanel Grid.Column="1">
+													<Image MaxWidth="160" MaxHeight="160" Source="{Binding Image}"/>
+													<Button Content="Выгрузить"
+															FontSize="14"
+															MaxWidth="160"
+															Command="{Binding DataContext.UploadFileFromAttributeCommand, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"
+															CommandParameter="{Binding Attribute}"/>
+												</StackPanel>
+											</Grid>
+										</GroupBox>
+									</DataTemplate>
+								</CUIS:AttributeTypeSelector.TemplateByteArray>
+							</CUIS:AttributeTypeSelector>
+						</ItemsControl.ItemTemplateSelector>
+					</ItemsControl>
 				</GroupBox>
 			</StackPanel>
 		</ScrollViewer>

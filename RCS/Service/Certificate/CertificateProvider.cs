@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.ConstrainedExecution;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
 using System.Text;
@@ -30,10 +31,37 @@ namespace RCS.Service.Certificate
 				Log.WriteLine("RCSCreateCertificate.MASTER", LogLevel.Error);
 				var cert = new Models.Certificates.Russian.CertificateSecret();
 				cert.Certificate.Info = settings.Info;
-				cert.Init(settings.MasterCertificate, settings.Name, settings.SizeKey);
+				cert.Init(settings.MasterCertificate, settings.SizeKey);
 				return cert;
 			}
-			
+
+		}
+		public static bool RCSCheckSignFile(string path)
+		{
+			Models.Certificates.Russian.Certificate cert;
+			byte[] sign;
+			try
+			{
+				cert = XmlProvider.LoadInzip<Models.Certificates.Russian.Certificate>(path, XmlProvider.NameFileCertificateInZip);
+				sign = XmlProvider.ReadInZip(path, XmlProvider.NameFileCertificateSignInZip);
+
+			}
+			catch (NullReferenceException) { return false; }
+			XmlProvider.DeleteEntryzip(path, XmlProvider.NameFileCertificateInZip);
+			XmlProvider.DeleteEntryzip(path, XmlProvider.NameFileCertificateSignInZip);
+
+			FileStream stream = new FileStream(path, FileMode.Open);
+
+			var check = cert.Verify(stream, sign);
+			stream.Close();
+
+			XmlProvider.WriteInZip(path, XmlProvider.NameFileCertificateSignInZip, sign);
+			XmlProvider.SaveInzip(path, XmlProvider.NameFileCertificateInZip, cert);
+			return check;
+		}
+		public static Models.Certificates.Russian.Certificate RCSLoadCertificateFromZip(string path)
+		{
+			return XmlProvider.LoadInzip<Models.Certificates.Russian.Certificate>(path, XmlProvider.NameFileCertificateInZip);
 		}
 		public static Models.Certificates.Russian.Certificate RCSLoadCertificate(string path)
 		{
@@ -69,13 +97,13 @@ namespace RCS.Service.Certificate
 			var x = new CreateSettingsCertificate();
 			var info = new CertificateInfo();
 
-			info.Attributes.Add(new CertificateAttribute() { Data = "Жуков", Name = "Фамилия", Type = TypeAttribute.String});
-			info.Attributes.Add(new CertificateAttribute() { Data = "Кирилл", Name = "Имя", Type = TypeAttribute.String});
-			info.Attributes.Add(new CertificateAttribute() { Data = "Дмитриевич", Name = "Отчество", Type = TypeAttribute.String});
-			info.Attributes.Add(new CertificateAttribute() { Data = 2.1, Name = "Число", Type = TypeAttribute.Double});
-			info.Attributes.Add(new CertificateAttribute() { Data = 1, Name = "Число", Type = TypeAttribute.Double});
-			info.Attributes.Add(new CertificateAttribute() { Data = DateTime.Now, Name = "3", Type = TypeAttribute.Date});
-			info.Attributes.Add(new CertificateAttribute() { Data = new byte[] { 0, 1, 2, 3}, Name = "2", Type = TypeAttribute.ByteArray});
+			info.Attributes.Add(new CertificateAttribute() { Data = "Жуков", Name = "Фамилия", Type = TypeAttribute.String });
+			info.Attributes.Add(new CertificateAttribute() { Data = "Кирилл", Name = "Имя", Type = TypeAttribute.String });
+			info.Attributes.Add(new CertificateAttribute() { Data = "Дмитриевич", Name = "Отчество", Type = TypeAttribute.String });
+			info.Attributes.Add(new CertificateAttribute() { Data = 2.1, Name = "Число", Type = TypeAttribute.Double });
+			info.Attributes.Add(new CertificateAttribute() { Data = 1, Name = "Число", Type = TypeAttribute.Double });
+			info.Attributes.Add(new CertificateAttribute() { Data = DateTime.Now, Name = "3", Type = TypeAttribute.Date });
+			info.Attributes.Add(new CertificateAttribute() { Data = new byte[] { 0, 1, 2, 3 }, Name = "2", Type = TypeAttribute.ByteArray });
 
 			x.Info = info;
 			var cert_1 = RCSCreateCertificate(x);

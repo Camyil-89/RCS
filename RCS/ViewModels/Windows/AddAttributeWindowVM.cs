@@ -144,12 +144,12 @@ namespace RCS.ViewModels.Windows
 					CertificateAttribute.Data = File.ReadAllBytes(dialog.FileName);
 					CertificateAttribute.FileName = new FileInfo(dialog.FileName).Name;
 					PathFile = dialog.FileName;
-					Window.Topmost = true;
-					Window.Focus();
-					Window.Topmost = false;
 				}
 				catch (Exception ex) { MessageBoxHelper.WarningShow($"Не удалось загрузить файл!\n\n{dialog.FileName}"); }
 			}
+			Window.Topmost = true;
+			Window.Focus();
+			Window.Topmost = false;
 		}
 		#endregion
 		#endregion
