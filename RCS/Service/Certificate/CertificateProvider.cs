@@ -54,6 +54,9 @@ namespace RCS.Service.Certificate
 
 			var check = cert.Verify(stream, sign);
 			stream.Close();
+			var root = Settings.Instance.CertificateStore.FindMasterCertificate(cert);
+			if (root == null)
+				check = false;
 
 			XmlProvider.WriteInZip(path, XmlProvider.NameFileCertificateSignInZip, sign);
 			XmlProvider.SaveInzip(path, XmlProvider.NameFileCertificateInZip, cert);
