@@ -9,7 +9,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RCS.Certificates\RCS.Certificates.csproj" />
-    <ProjectReference Include="..\RCS.Service\RCS.Service.csproj" />
   </ItemGroup>
 
 </Project>

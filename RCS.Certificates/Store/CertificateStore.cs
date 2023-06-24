@@ -36,7 +36,7 @@ namespace RCS.Certificates.Store
         {
             return Certificates.FirstOrDefault((i) => i.ValidType != ValidType.NotValid && i.Certificate.Info.UID == uid);
         }
-        public void Load()
+        public List<string> Load()
         {
             Certificates.Clear();
             CertificatesView.Clear();
@@ -71,10 +71,11 @@ namespace RCS.Certificates.Store
             }
             foreach (var item in remove)
                 Certificates.Remove(item);
-            if (corrupt.Count > 0)
-            {
-                Service.UI.MessageBoxHelper.WarningShow($"Не удалось загрузить некотрые сертификаты! возможно они повреждены!\n\n{string.Join("\n", corrupt)}");
-            }
+			//if (corrupt.Count > 0)
+			//{
+			//    Service.UI.MessageBoxHelper.WarningShow($"Не удалось загрузить некотрые сертификаты! возможно они повреждены!\n\n{string.Join("\n", corrupt)}");
+			//}
+			return corrupt;
         }
         public void Validate()
         {
