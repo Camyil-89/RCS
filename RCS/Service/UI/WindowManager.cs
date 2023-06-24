@@ -9,7 +9,7 @@ namespace RCS.Service.UI
 {
 	public static class WindowManager
 	{
-		public static void ShowInfoAboutCertificate(Models.Certificates.Russian.Certificate certificate)
+		public static void ShowInfoAboutCertificate(Certificates.Certificate certificate)
 		{
 			Views.Windows.InfoCertificateWindow window = new Views.Windows.InfoCertificateWindow();
 
@@ -21,7 +21,7 @@ namespace RCS.Service.UI
 
 			window.Show();
 		}
-		public static Models.Certificates.Russian.CertificateAttribute ShowAddAttributeWindow(Models.Certificates.Russian.TypeAttribute type)
+		public static Certificates.CertificateAttribute ShowAddAttributeWindow(Certificates.TypeAttribute type)
 		{
 			Views.Windows.AddAttributeWindow window = new Views.Windows.AddAttributeWindow();
 			ViewModels.Windows.AddAttributeWindowVM vm = new ViewModels.Windows.AddAttributeWindowVM();

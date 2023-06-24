@@ -15,7 +15,7 @@ namespace RCS.Service
 		Warning = 2,
 	}
 
-	internal static class Log
+	public static class Log
 	{
 		public static void WriteError(Exception er)
 		{

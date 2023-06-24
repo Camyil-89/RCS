@@ -1,4 +1,4 @@
-﻿using RCS.Models.Certificates;
+﻿using RCS.Certificates.Store;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

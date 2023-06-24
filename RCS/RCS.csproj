@@ -18,6 +18,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\RCS.Certificates\RCS.Certificates.csproj" />
+    <ProjectReference Include="..\RCS.Service.UI\RCS.Service.UI.csproj" />
+    <ProjectReference Include="..\RCS.Service\RCS.Service.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="Assets\flag.png" />
   </ItemGroup>
 

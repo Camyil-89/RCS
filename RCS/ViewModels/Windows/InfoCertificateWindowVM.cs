@@ -21,9 +21,9 @@ namespace RCS.ViewModels.Windows
 
 		#region Certificate: Description
 		/// <summary>Description</summary>
-		private Models.Certificates.Russian.Certificate _Certificate;
+		private Certificates.Certificate _Certificate;
 		/// <summary>Description</summary>
-		public Models.Certificates.Russian.Certificate Certificate { get => _Certificate; set => Set(ref _Certificate, value); }
+		public Certificates.Certificate Certificate { get => _Certificate; set => Set(ref _Certificate, value); }
 		#endregion
 
 
@@ -71,7 +71,7 @@ namespace RCS.ViewModels.Windows
 		public string IsTrusted { get => _IsTrusted; set => Set(ref _IsTrusted, value); }
 		#endregion
 
-		public void Init(Models.Certificates.Russian.Certificate certificate)
+		public void Init(Certificates.Certificate certificate)
 		{
 			Certificate = certificate;
 			UpdateAttributeView();
@@ -135,7 +135,7 @@ namespace RCS.ViewModels.Windows
 		{
 			try
 			{
-				var att = (e as Models.Certificates.Russian.CertificateAttribute);
+				var att = (e as Certificates.CertificateAttribute);
 				SaveFileDialog dialog = new SaveFileDialog();
 				dialog.Title = "Выберите место сохранения";
 				dialog.FileName = att.FileName;
@@ -155,7 +155,7 @@ namespace RCS.ViewModels.Windows
 		private void UpdateAttributeView()
 		{
 			AttributeView.Clear();
-			foreach (var i in ((Models.Certificates.Russian.CertificateInfo)Certificate.Info).Attributes)
+			foreach (var i in Certificate.Info.Attributes)
 			{
 				AttributeView.Add(new Service.UI.Selector.AttriburteView() { Attribute = i, IsChange = false });
 			}

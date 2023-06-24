@@ -13,7 +13,7 @@ using System.Windows.Media.Animation;
 using System.Xml.Linq;
 using System.Xml.Serialization;
 
-namespace RCS.Models.Certificates.Russian
+namespace RCS.Certificates
 {
 	[XmlType(TypeName = "Секретная_информация")]
 	public class CertificateSecret : Base.ViewModel.BaseViewModel
@@ -43,7 +43,7 @@ namespace RCS.Models.Certificates.Russian
 			var stream = new FileStream(path, FileMode.Open);
 			var sign = Sign(stream);
 			stream.Close();
-			XmlProvider.SaveInzip<Models.Certificates.Russian.Certificate>(path, XmlProvider.NameFileCertificateInZip, Certificate);
+			XmlProvider.SaveInzip<Certificates.Certificate>(path, XmlProvider.NameFileCertificateInZip, Certificate);
 			XmlProvider.WriteInZip(path, XmlProvider.NameFileCertificateSignInZip, sign);
 		}
 		public void SignSelf()

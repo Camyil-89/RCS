@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RCS.Service.UI\RCS.Service.UI.csproj" />
+    <ProjectReference Include="..\RCS.Service\RCS.Service.csproj" />
+  </ItemGroup>
+
+</Project>

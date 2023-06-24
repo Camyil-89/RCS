@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCS.Models.Certificates
+namespace RCS.Certificates.Store
 {
 	public enum ValidType: byte
 	{
@@ -21,9 +21,9 @@ namespace RCS.Models.Certificates
 
 		#region Certificate: Description
 		/// <summary>Description</summary>
-		private Russian.Certificate _Certificate;
+		private Certificate _Certificate;
 		/// <summary>Description</summary>
-		public Russian.Certificate Certificate { get => _Certificate; set => Set(ref _Certificate, value); }
+		public Certificate Certificate { get => _Certificate; set => Set(ref _Certificate, value); }
 		#endregion
 
 

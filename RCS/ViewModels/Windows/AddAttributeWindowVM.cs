@@ -75,9 +75,9 @@ namespace RCS.ViewModels.Windows
 
 		#region Attribute: Description
 		/// <summary>Description</summary>
-		private Models.Certificates.Russian.CertificateAttribute _CertificateAttribute = new Models.Certificates.Russian.CertificateAttribute();
+		private Certificates.CertificateAttribute _CertificateAttribute = new Certificates.CertificateAttribute();
 		/// <summary>Description</summary>
-		public Models.Certificates.Russian.CertificateAttribute CertificateAttribute { get => _CertificateAttribute; set => Set(ref _CertificateAttribute, value); }
+		public Certificates.CertificateAttribute CertificateAttribute { get => _CertificateAttribute; set => Set(ref _CertificateAttribute, value); }
 		#endregion
 		#endregion
 
@@ -100,7 +100,7 @@ namespace RCS.ViewModels.Windows
 				return;
 			}
 
-			if (CertificateAttribute.Type == Models.Certificates.Russian.TypeAttribute.Double)
+			if (CertificateAttribute.Type == Certificates.TypeAttribute.Double)
 			{
 				try
 				{
@@ -155,12 +155,12 @@ namespace RCS.ViewModels.Windows
 		#endregion
 
 		#region Functions
-		public void Init(Models.Certificates.Russian.TypeAttribute Type)
+		public void Init(Certificates.TypeAttribute Type)
 		{
-			VisibilityStringPanel = Type == Models.Certificates.Russian.TypeAttribute.String ? Visibility.Visible : Visibility.Collapsed;
-			VisibilityDatePanel = Type == Models.Certificates.Russian.TypeAttribute.Date ? Visibility.Visible : Visibility.Collapsed;
-			VisibilityDoublePanel = Type == Models.Certificates.Russian.TypeAttribute.Double ? Visibility.Visible : Visibility.Collapsed;
-			VisibilityByteArrayPanel = Type == Models.Certificates.Russian.TypeAttribute.ByteArray ? Visibility.Visible : Visibility.Collapsed;
+			VisibilityStringPanel = Type == Certificates.TypeAttribute.String ? Visibility.Visible : Visibility.Collapsed;
+			VisibilityDatePanel = Type == Certificates.TypeAttribute.Date ? Visibility.Visible : Visibility.Collapsed;
+			VisibilityDoublePanel = Type == Certificates.TypeAttribute.Double ? Visibility.Visible : Visibility.Collapsed;
+			VisibilityByteArrayPanel = Type == Certificates.TypeAttribute.ByteArray ? Visibility.Visible : Visibility.Collapsed;
 
 			CertificateAttribute.Type = Type;
 		}

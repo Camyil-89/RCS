@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using RCS.Certificates.Store;
 using RCS.Models;
-using RCS.Models.Certificates;
-using RCS.Models.Certificates.Russian;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -11,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace RCS.Service
 {
-	public class Settings : Base.ViewModel.BaseViewModel
+    public class Settings : Base.ViewModel.BaseViewModel
 	{
 		public static Settings Instance => App.Host.Services.GetRequiredService<Settings>();
 

@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCS.Models.Certificates.Russian
+namespace RCS.Certificates
 {
     public class CreateSettingsCertificate: Base.ViewModel.BaseViewModel
     {
@@ -44,9 +44,9 @@ namespace RCS.Models.Certificates.Russian
 
 		#region Info: Description
 		/// <summary>Description</summary>
-		private BaseCertificateInfo _Info = new CertificateInfo();
+		private CertificateInfo _Info = new CertificateInfo();
 		/// <summary>Description</summary>
-		public BaseCertificateInfo Info { get => _Info; set => Set(ref _Info, value); }
+		public CertificateInfo Info { get => _Info; set => Set(ref _Info, value); }
 		#endregion
 	}
 }

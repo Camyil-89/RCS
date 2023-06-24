@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
 
-namespace RCS.Models.Certificates.Russian
+namespace RCS.Certificates
 {
 	public enum TypeAttribute: byte
 	{
@@ -148,13 +148,9 @@ namespace RCS.Models.Certificates.Russian
 			return double.Parse(section.Value);
 		}
 	}
-	[XmlType(TypeName ="Минимальная")]
-	[XmlInclude(typeof(CertificateInfo))]
-	[XmlInclude(typeof(CertificateAttribute))]
-	public abstract class BaseCertificateInfo: Base.ViewModel.BaseViewModel
+	[XmlType(TypeName = "Базовая")]
+	public class CertificateInfo: Base.ViewModel.BaseViewModel
 	{
-
-
 		#region MasterUID: Description
 		/// <summary>Description</summary>
 		private Guid _MasterUID;
@@ -190,7 +186,7 @@ namespace RCS.Models.Certificates.Russian
 
 		#region DateDead: Description
 		/// <summary>Description</summary>
-		private DateTime _DateDead = DateTime.Now + new TimeSpan(180,0,0,0,0);
+		private DateTime _DateDead = DateTime.Now + new TimeSpan(180, 0, 0, 0, 0);
 		/// <summary>Description</summary>
 		[XmlAttribute("Время_окончания")]
 		public DateTime DateDead { get => _DateDead; set => Set(ref _DateDead, value); }
@@ -240,11 +236,6 @@ namespace RCS.Models.Certificates.Russian
 			memoryStream.Close();
 			return data;
 		}
-	}
-	[XmlType(TypeName = "Базовая")]
-	public class CertificateInfo : BaseCertificateInfo
-	{
-
 		#region Attributes: Description
 		/// <summary>Description</summary>
 		private ObservableCollection<CertificateAttribute> _Attributes = new ObservableCollection<CertificateAttribute>();
@@ -270,10 +261,10 @@ namespace RCS.Models.Certificates.Russian
 
 		#region Info: Description
 		/// <summary>Description</summary>
-		private BaseCertificateInfo _Info = new CertificateInfo();
+		private CertificateInfo _Info = new CertificateInfo();
 		/// <summary>Description</summary>	
 		[XmlElement("Информация")]		
-		public BaseCertificateInfo Info { get => _Info; set => Set(ref _Info, value); }
+		public CertificateInfo Info { get => _Info; set => Set(ref _Info, value); }
 		#endregion
 
 		#region Sign: Description

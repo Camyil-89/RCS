@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using RCS.Base.Command;
-using RCS.Models.Certificates.Russian;
 using RCS.Service;
 using RCS.Service.UI;
 using RCS.ViewModels.Pages.Main;

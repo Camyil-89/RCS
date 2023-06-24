@@ -2,10 +2,9 @@
 using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using RCS.Base.Command;
-using RCS.Models.Certificates;
-using RCS.Models.Certificates.Russian;
+using RCS.Certificates;
+using RCS.Certificates;
 using RCS.Service;
-using RCS.Service.Certificate;
 using RCS.Service.UI;
 using RCS.ViewModels.Windows;
 using RCS.Views.Pages.Main;
@@ -38,7 +37,7 @@ namespace RCS.ViewModels.Pages.Main
 		{
 			get
 			{
-				return EnumHelper.GetAllValuesAndDescriptions<Models.Certificates.Russian.TypeAttribute>().Where((i) => i.Value != "");
+				return EnumHelper.GetAllValuesAndDescriptions<Certificates.TypeAttribute>().Where((i) => i.Value != "");
 			}
 		}
 		public Settings Settings => App.Host.Services.GetRequiredService<Settings>();
@@ -81,9 +80,9 @@ namespace RCS.ViewModels.Pages.Main
 
 		#region SelectedCertificate: Description
 		/// <summary>Description</summary>
-		private Models.Certificates.Russian.CertificateSecret _SelectedCertificate;
+		private Certificates.CertificateSecret _SelectedCertificate;
 		/// <summary>Description</summary>
-		public Models.Certificates.Russian.CertificateSecret SelectedCertificate { get => _SelectedCertificate; set => Set(ref _SelectedCertificate, value); }
+		public Certificates.CertificateSecret SelectedCertificate { get => _SelectedCertificate; set => Set(ref _SelectedCertificate, value); }
 		#endregion
 
 		#region AttributeView: Description
@@ -102,16 +101,16 @@ namespace RCS.ViewModels.Pages.Main
 
 		#region InfoSertificate: Description
 		/// <summary>Description</summary>
-		private Models.Certificates.Russian.CertificateInfo _InfoSertificate = new CertificateInfo();
+		private Certificates.CertificateInfo _InfoSertificate = new CertificateInfo();
 		/// <summary>Description</summary>
-		public Models.Certificates.Russian.CertificateInfo InfoSertificate { get => _InfoSertificate; set => Set(ref _InfoSertificate, value); }
+		public Certificates.CertificateInfo InfoSertificate { get => _InfoSertificate; set => Set(ref _InfoSertificate, value); }
 		#endregion
 
 		#region SelectedTypeAttribute: Description
 		/// <summary>Description</summary>
-		private Models.Certificates.Russian.TypeAttribute _SelectedTypeAttribute = Models.Certificates.Russian.TypeAttribute.String;
+		private Certificates.TypeAttribute _SelectedTypeAttribute = Certificates.TypeAttribute.String;
 		/// <summary>Description</summary>
-		public Models.Certificates.Russian.TypeAttribute SelectedTypeAttribute { get => _SelectedTypeAttribute; set => Set(ref _SelectedTypeAttribute, value); }
+		public Certificates.TypeAttribute SelectedTypeAttribute { get => _SelectedTypeAttribute; set => Set(ref _SelectedTypeAttribute, value); }
 		#endregion
 		#endregion
 
@@ -148,7 +147,7 @@ namespace RCS.ViewModels.Pages.Main
 			{
 				try
 				{
-					SelectedCertificate = Service.Certificate.CertificateProvider.RCSLoadCertificateSecret(dialog.FileName);
+					SelectedCertificate = Certificates.CertificateManager.RCSLoadCertificateSecret(dialog.FileName);
 					Settings.Instance.CertificateStore.Load();
 					var root = Settings.Instance.CertificateStore.FindMasterCertificate(SelectedCertificate.Certificate);
 
@@ -220,7 +219,7 @@ namespace RCS.ViewModels.Pages.Main
 				settings.Name = InfoSertificate.Name;
 				if (SelfSign == false)
 					settings.MasterCertificate = SelectedCertificate;
-				var cert = Service.Certificate.CertificateProvider.RCSCreateCertificate(settings);
+				var cert = Certificates.CertificateManager.RCSCreateCertificate(settings);
 				cert.SaveToFile(dialog.FileName);
 				cert.Certificate.SaveToFile(dialog.FileName.Replace(".ссертификат", ".сертификат"));
 			}
@@ -274,7 +273,7 @@ namespace RCS.ViewModels.Pages.Main
 			{
 				try
 				{
-					var cert = CertificateProvider.RCSLoadCertificateSecret(dialog.FileName);
+					var cert = Certificates.CertificateManager.RCSLoadCertificateSecret(dialog.FileName);
 					SaveFileDialog dialog1 = new SaveFileDialog();
 					dialog1.Title = "Выберите место сохранения";
 					dialog1.Filter = "Файлы .сертификат|*.сертификат";
@@ -335,7 +334,7 @@ namespace RCS.ViewModels.Pages.Main
 		private bool CanDeleteAttributeCommandExecute(object e) => true;
 		private void OnDeleteAttributeCommandExecuted(object e)
 		{
-			var att = (e as Models.Certificates.Russian.CertificateAttribute);
+			var att = (e as Certificates.CertificateAttribute);
 
 			if (MessageBoxHelper.QuestionShow($"Вы уверены что хотите удалить поле?\n{att.Name} [{att.Type.Description()}]") != System.Windows.MessageBoxResult.Yes)
 				return;

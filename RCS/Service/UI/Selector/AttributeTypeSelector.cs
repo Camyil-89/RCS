@@ -18,15 +18,15 @@ namespace RCS.Service.UI.Selector
 
 		public override DataTemplate SelectTemplate(object item, DependencyObject container)
 		{
-			Models.Certificates.Russian.CertificateAttribute attribute = (item as Service.UI.Selector.AttriburteView).Attribute;
+			Certificates.CertificateAttribute attribute = (item as Service.UI.Selector.AttriburteView).Attribute;
 
-			if (attribute.Type == Models.Certificates.Russian.TypeAttribute.String)
+			if (attribute.Type == Certificates.TypeAttribute.String)
 				return TemplateString;
-			else if (attribute.Type == Models.Certificates.Russian.TypeAttribute.Double)
+			else if (attribute.Type == Certificates.TypeAttribute.Double)
 				return TemplateNumber;
-			else if (attribute.Type == Models.Certificates.Russian.TypeAttribute.Date)
+			else if (attribute.Type == Certificates.TypeAttribute.Date)
 				return TemplateDate;
-			else if (attribute.Type == Models.Certificates.Russian.TypeAttribute.ByteArray)
+			else if (attribute.Type == Certificates.TypeAttribute.ByteArray)
 				return TemplateByteArray;
 
 			return base.SelectTemplate(item, container);

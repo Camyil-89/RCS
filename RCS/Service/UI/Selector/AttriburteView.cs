@@ -71,21 +71,21 @@ namespace RCS.Service.UI.Selector
 
 		#region Attribute: Description
 		/// <summary>Description</summary>
-		private Models.Certificates.Russian.CertificateAttribute _Attribute;
+		private Certificates.CertificateAttribute _Attribute;
 		/// <summary>Description</summary>
-		public Models.Certificates.Russian.CertificateAttribute Attribute
+		public Certificates.CertificateAttribute Attribute
 		{
 			get => _Attribute; set
 			{
 				Set(ref _Attribute, value);
 
-				if (this.Attribute.Type == Models.Certificates.Russian.TypeAttribute.Double)
+				if (this.Attribute.Type == Certificates.TypeAttribute.Double)
 					Number = (double)this.Attribute.Data;
-				else if (this.Attribute.Type == Models.Certificates.Russian.TypeAttribute.String)
+				else if (this.Attribute.Type == Certificates.TypeAttribute.String)
 					Str = (string)this.Attribute.Data;
-				else if (this.Attribute.Type == Models.Certificates.Russian.TypeAttribute.Date)
+				else if (this.Attribute.Type == Certificates.TypeAttribute.Date)
 					Date = (DateTime)this.Attribute.Data;
-				else if (this.Attribute.Type == Models.Certificates.Russian.TypeAttribute.ByteArray)
+				else if (this.Attribute.Type == Certificates.TypeAttribute.ByteArray)
 				{
 					try
 					{
