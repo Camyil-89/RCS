@@ -64,12 +64,6 @@ namespace RCSServer.Service
 		{
 			Log.WriteLine($"Startup.MainWindow_Loaded", LogLevel.Warning);
 			RCSServer.Service.Settings.Instance.CertificatesStore.Load();
-			//RCS.Service.Settings.Instance.CertificateStore = RCSServer.Service.Settings.Instance.CertificatesStore;
-			try
-			{
-				RCS.Service.UI.WindowManager.ShowInfoAboutCertificate(RCS.Certificates.CertificateManager.RCSLoadCertificate("C:\\Users\\zhuko\\Documents\\RCS\\1.сертификат"));
-			}
-			catch (Exception ex) { Console.WriteLine(ex); }
 		}
 	}
 }
