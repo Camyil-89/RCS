@@ -88,7 +88,7 @@ namespace RCS.Certificates.Store
             }
         }
 
-        private ValidType Valid(StoreItem item)
+        public ValidType Valid(StoreItem item)
         {
             if (item.Certificate.Info.DateDead < DateTime.Now)
                 return ValidType.NotValid;
