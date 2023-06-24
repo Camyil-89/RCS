@@ -6,4 +6,9 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\RCS.Certificates\RCS.Certificates.csproj" />
+    <ProjectReference Include="..\RCS.Service.UI\RCS.Service.UI.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace RCS.Service.UI.Selector
+namespace RCS.WindowsManager.Selector
 {
     public class AttributeTypeSelector : DataTemplateSelector
 	{

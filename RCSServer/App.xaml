@@ -1,0 +1,17 @@
+﻿<Application x:Class="RCSServer.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:RCSServer"
+             xmlns:vm="clr-namespace:RCSServer.ViewModels"
+             StartupUri="Views\Windows\MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <vm:Locator x:Key="Locator"/>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Styles/ButtonStyles.xaml"/>
+                <ResourceDictionary Source="Styles/TextBoxStyles.xaml"/>
+                <ResourceDictionary Source="Styles/DatePickerStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

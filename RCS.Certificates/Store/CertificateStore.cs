@@ -14,7 +14,7 @@ namespace RCS.Certificates.Store
 {
     public class CertificateStore : Base.ViewModel.BaseViewModel
     {
-
+        public string PathStore = XmlProvider.PathToTrustedCertificates;
         #region Certificates: Description
         /// <summary>Description</summary>
         private ObservableCollection<StoreItem> _Certificates = new ObservableCollection<StoreItem>();
@@ -41,7 +41,7 @@ namespace RCS.Certificates.Store
             Certificates.Clear();
             CertificatesView.Clear();
             List<string> corrupt = new List<string>();
-            foreach (var path in Directory.GetFiles(XmlProvider.PathToTrustedCertificates))
+            foreach (var path in Directory.GetFiles(PathStore))
             {
                 if (path.EndsWith(".сертификат") == false)
                     continue;
@@ -122,22 +122,5 @@ namespace RCS.Certificates.Store
                 return null;
             return FindMasterCertificate(cert);
         }
-        //public bool CheckValidMaster(Models.Certificates.Russian.Certificate certificate)
-        //{
-        //	if (certificate.Info.DateDead < DateTime.Now)
-        //		return false;
-        //
-        //	if (certificate.Info.MasterUID == certificate.Info.UID)
-        //		return true;
-        //
-        //	foreach (var cert_valid in Certificates.Where((i) =>i.ValidType != ValidType.NotValid && i.Certificate.Certificate.Info.UID != certificate.Info.MasterUID))
-        //	{
-        //		StoreItem item = cert_valid;
-        //		while (item.ValidType != ValidType.SelfValid)
-        //		{
-        //
-        //		}
-        //	}
-        //}
     }
 }

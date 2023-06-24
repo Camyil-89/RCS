@@ -6,6 +6,7 @@ using RCS.Certificates;
 using RCS.Certificates;
 using RCS.Service;
 using RCS.Service.UI;
+using RCS.Service.UI.Selector;
 using RCS.ViewModels.Windows;
 using RCS.Views.Pages.Main;
 using System;
@@ -87,9 +88,9 @@ namespace RCS.ViewModels.Pages.Main
 
 		#region AttributeView: Description
 		/// <summary>Description</summary>
-		private ObservableCollection<Service.UI.Selector.AttriburteView> _AttributeView = new ObservableCollection<Service.UI.Selector.AttriburteView>();
+		private ObservableCollection<AttriburteView> _AttributeView = new ObservableCollection<AttriburteView>();
 		/// <summary>Description</summary>
-		public ObservableCollection<Service.UI.Selector.AttriburteView> AttributeView { get => _AttributeView; set => Set(ref _AttributeView, value); }
+		public ObservableCollection<AttriburteView> AttributeView { get => _AttributeView; set => Set(ref _AttributeView, value); }
 		#endregion
 
 		#region EnableButtonSelectCert: Description
@@ -178,7 +179,7 @@ namespace RCS.ViewModels.Pages.Main
 				if (att != null)
 				{
 					InfoSertificate.AddAttribute(att);
-					AttributeView.Add(new Service.UI.Selector.AttriburteView() { Attribute = att });
+					AttributeView.Add(new AttriburteView() { Attribute = att });
 				}
 			}
 			catch (Exception ex) { MessageBoxHelper.WarningShow($"Не удалось добавить поле!\n{ex.Message}"); }
@@ -351,7 +352,7 @@ namespace RCS.ViewModels.Pages.Main
 			AttributeView.Clear();
 			foreach (var i in InfoSertificate.Attributes)
 			{
-				AttributeView.Add(new Service.UI.Selector.AttriburteView() { Attribute = i });
+				AttributeView.Add(new AttriburteView() { Attribute = i });
 			}
 		}
 		private void CallbackOpen(Page Page)

@@ -1,0 +1,13 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+	<Style TargetType="TextBox" x:Key="RedIfTag1">
+		<Style.Triggers>
+			<Trigger Property="Tag" Value="0">
+				<Setter Property="Background" Value="Red"/>
+			</Trigger>
+			<Trigger Property="Tag" Value="1">
+				<Setter Property="Background" Value="Green"/>
+			</Trigger>
+		</Style.Triggers>
+	</Style>
+</ResourceDictionary>

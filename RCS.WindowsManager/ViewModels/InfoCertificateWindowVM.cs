@@ -9,12 +9,11 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using RCS.Base.Command;
 using System.IO;
 using Microsoft.Win32;
-using RCS.Service.UI.Selector;
+using RCS.WindowsManager.Base;
 
-namespace RCS.ViewModels.Windows
+namespace RCS.WindowsManager.ViewModels
 {
 	public class InfoCertificateWindowVM : Base.ViewModel.BaseViewModel
 	{
@@ -30,9 +29,9 @@ namespace RCS.ViewModels.Windows
 
 		#region AttributeView: Description
 		/// <summary>Description</summary>
-		private ObservableCollection<AttriburteView> _AttributeView = new ObservableCollection<AttriburteView>();
+		private ObservableCollection<Service.UI.Selector.AttriburteView> _AttributeView = new ObservableCollection<Service.UI.Selector.AttriburteView>();
 		/// <summary>Description</summary>
-		public ObservableCollection<AttriburteView> AttributeView { get => _AttributeView; set => Set(ref _AttributeView, value); }
+		public ObservableCollection<Service.UI.Selector.AttriburteView> AttributeView { get => _AttributeView; set => Set(ref _AttributeView, value); }
 		#endregion
 
 		#region IsOkTime: Description
@@ -89,7 +88,6 @@ namespace RCS.ViewModels.Windows
 
 			try
 			{
-				Settings.Instance.CertificateStore.Load();
 				var root = Settings.Instance.CertificateStore.FindMasterCertificate(certificate);
 				if (root == null)
 				{
@@ -159,7 +157,7 @@ namespace RCS.ViewModels.Windows
 			AttributeView.Clear();
 			foreach (var i in Certificate.Info.Attributes)
 			{
-				AttributeView.Add(new AttriburteView() { Attribute = i, IsChange = false });
+				AttributeView.Add(new Service.UI.Selector.AttriburteView() { Attribute = i, IsChange = false });
 			}
 		}
 	}

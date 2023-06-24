@@ -1,0 +1,10 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+	<Style TargetType="DatePicker" x:Key="DatePickerRedIfTag1">
+		<Style.Triggers>
+			<Trigger Property="Tag" Value="0">
+				<Setter Property="Background" Value="Red"/>
+			</Trigger>
+		</Style.Triggers>
+	</Style>
+</ResourceDictionary>

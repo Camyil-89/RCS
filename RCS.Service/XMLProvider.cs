@@ -12,8 +12,7 @@ namespace RCS.Service
 	public static class XmlProvider
 	{
 		public static readonly string PathToSave = $"{Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)}\\RCS";
-		public static readonly string PathToTrustedCertificates = $"{PathToSave}\\TrustedCertificates";
-		public static readonly string PathToCertificates = $"{PathToSave}\\Certificates";
+		public static string PathToTrustedCertificates = $"{PathToSave}\\TrustedCertificates";
 		public static readonly string NameFileCertificateInZip = $"RCS_Certificate_metadata.xml";
 		public static readonly string NameFileCertificateSignInZip = $"RCS_Certificate_metadata_sign.xml";
 		public static bool CompressZip = true;

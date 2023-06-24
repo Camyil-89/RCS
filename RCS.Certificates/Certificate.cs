@@ -9,12 +9,13 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using System.Xml;
 using System.Xml.Serialization;
 
 namespace RCS.Certificates
 {
-	public enum TypeAttribute: byte
+	public enum TypeAttribute : byte
 	{
 		[XmlEnum("Число")]
 		[Description("Число")]
@@ -30,14 +31,14 @@ namespace RCS.Certificates
 		ByteArray = 3,
 	}
 	[XmlType(TypeName = "Поле")]
-	public class CertificateAttribute: Base.ViewModel.BaseViewModel
+	public class CertificateAttribute : Base.ViewModel.BaseViewModel
 	{
 
 		#region Name: Description
 		/// <summary>Description</summary>
 		private string _Name;
 		/// <summary>Description</summary>
-		[XmlAttribute("Имя_поля")]		
+		[XmlElement("Имя_поля", Order = 1)]
 		public string Name { get => _Name; set => Set(ref _Name, value); }
 		#endregion
 
@@ -46,7 +47,7 @@ namespace RCS.Certificates
 		/// <summary>Description</summary>
 		private string _FileName;
 		/// <summary>Description</summary>
-		[XmlAttribute("Имя_файла")]	
+		[XmlElement("Имя_файла", Order = 2)]
 		public string FileName { get => _FileName; set => Set(ref _FileName, value); }
 		#endregion
 
@@ -54,11 +55,11 @@ namespace RCS.Certificates
 		/// <summary>Description</summary>
 		private TypeAttribute _Type;
 		/// <summary>Description</summary>
-		[XmlAttribute("Тип_поля")]		
+		[XmlElement("Тип_поля", Order = 3)]
 		public TypeAttribute Type { get => _Type; set => Set(ref _Type, value); }
 		#endregion
 
-		[XmlElement("Значение")]
+		[XmlElement("Значение", Order = 4)]
 		public XmlCDataSection AttributeValueCData
 		{
 			get
@@ -100,7 +101,7 @@ namespace RCS.Certificates
 				{
 					Data = GetDateTimeDataFromSection(value);
 				}
-				else if(Type == TypeAttribute.Double)
+				else if (Type == TypeAttribute.Double)
 				{
 					Data = GetDoubleDataFromSection(value);
 				}
@@ -149,13 +150,13 @@ namespace RCS.Certificates
 		}
 	}
 	[XmlType(TypeName = "Базовая")]
-	public class CertificateInfo: Base.ViewModel.BaseViewModel
+	public class CertificateInfo : Base.ViewModel.BaseViewModel
 	{
 		#region MasterUID: Description
 		/// <summary>Description</summary>
 		private Guid _MasterUID;
 		/// <summary>Description</summary>
-		[XmlAttribute("Идентификатор_родителя")]
+		[XmlElement("Идентификатор_родителя", Order = 1)]
 		public Guid MasterUID { get => _MasterUID; set => Set(ref _MasterUID, value); }
 		#endregion
 
@@ -163,14 +164,14 @@ namespace RCS.Certificates
 		/// <summary>Description</summary>
 		private Guid _UID = Guid.NewGuid();
 		/// <summary>Description</summary>
-		[XmlAttribute("Идентификатор")]
+		[XmlElement("Идентификатор", Order = 2)]
 		public Guid UID { get => _UID; set => Set(ref _UID, value); }
 		#endregion
 		#region Version: Description
 		/// <summary>Description</summary>
 		private int _Version = 1;
 		/// <summary>Description</summary>
-		[XmlAttribute("Версия_сертификата")]
+		[XmlElement("Версия_сертификата", Order = 3)]
 		public int Version { get => _Version; set => Set(ref _Version, value); }
 		#endregion
 
@@ -179,7 +180,7 @@ namespace RCS.Certificates
 		/// <summary>Description</summary>
 		private DateTime _DateCreate = DateTime.Now;
 		/// <summary>Description</summary>
-		[XmlAttribute("Время_создания")]
+		[XmlElement("Время_создания", Order = 4)]
 		public DateTime DateCreate { get => _DateCreate; set => Set(ref _DateCreate, value); }
 		#endregion
 
@@ -188,7 +189,7 @@ namespace RCS.Certificates
 		/// <summary>Description</summary>
 		private DateTime _DateDead = DateTime.Now + new TimeSpan(180, 0, 0, 0, 0);
 		/// <summary>Description</summary>
-		[XmlAttribute("Время_окончания")]
+		[XmlElement("Время_окончания", Order = 5)]
 		public DateTime DateDead { get => _DateDead; set => Set(ref _DateDead, value); }
 		#endregion
 
@@ -196,7 +197,7 @@ namespace RCS.Certificates
 		/// <summary>Description</summary>
 		private byte[] _PublicKey = new byte[0];
 		/// <summary>Description</summary>
-		[XmlAttribute("Публичный_ключ")]
+		[XmlElement("Публичный_ключ", Order = 6)]
 		public byte[] PublicKey { get => _PublicKey; set => Set(ref _PublicKey, value); }
 		#endregion
 
@@ -205,7 +206,7 @@ namespace RCS.Certificates
 		/// <summary>Description</summary>
 		private string _Master;
 		/// <summary>Description</summary>
-		[XmlAttribute("Кем_выдан")]
+		[XmlElement("Кем_выдан", Order = 7)]
 		public string Master { get => _Master; set => Set(ref _Master, value); }
 		#endregion
 
@@ -214,10 +215,17 @@ namespace RCS.Certificates
 		/// <summary>Description</summary>
 		private string _Name;
 		/// <summary>Description</summary>
-		[XmlAttribute("Кому_выдан")]
+		[XmlElement("Кому_выдан", Order = 8)]
 		public string Name { get => _Name; set => Set(ref _Name, value); }
 		#endregion
 
+		#region Attributes: Description
+		/// <summary>Description</summary>
+		private ObservableCollection<CertificateAttribute> _Attributes = new ObservableCollection<CertificateAttribute>();
+		/// <summary>Description</summary>
+		[XmlArray("Доступная_информация", Order = 9)]
+		public ObservableCollection<CertificateAttribute> Attributes { get => _Attributes; set => Set(ref _Attributes, value); }
+		#endregion
 		public virtual byte[] RawByte()
 		{
 			XmlSerializer serializer = new XmlSerializer(this.GetType());
@@ -236,13 +244,6 @@ namespace RCS.Certificates
 			memoryStream.Close();
 			return data;
 		}
-		#region Attributes: Description
-		/// <summary>Description</summary>
-		private ObservableCollection<CertificateAttribute> _Attributes = new ObservableCollection<CertificateAttribute>();
-		/// <summary>Description</summary>
-		[XmlArray("Доступная_информация")]
-		public ObservableCollection<CertificateAttribute> Attributes { get => _Attributes; set => Set(ref _Attributes, value); }
-		#endregion
 
 		public void AddAttribute(CertificateAttribute attribute)
 		{
@@ -255,31 +256,31 @@ namespace RCS.Certificates
 			return Attributes.FirstOrDefault((i) => i.Name == attribute.Name) != null;
 		}
 	}
-	[XmlType(TypeName="Сертификат")]
+	[XmlType(TypeName = "Сертификат")]
 	public class Certificate : Base.ViewModel.BaseViewModel
-    {
+	{
 
 		#region Info: Description
 		/// <summary>Description</summary>
 		private CertificateInfo _Info = new CertificateInfo();
 		/// <summary>Description</summary>	
-		[XmlElement("Информация")]		
+		[XmlElement("Информация", Order = 1)]
 		public CertificateInfo Info { get => _Info; set => Set(ref _Info, value); }
 		#endregion
 
 		#region Sign: Description
 		/// <summary>Description</summary>
 		private byte[] _Sign = new byte[0];
-        /// <summary>Description</summary>
-        [XmlAttribute("Подпись")]
-        public byte[] Sign { get => _Sign; set => Set(ref _Sign, value); }
+		/// <summary>Description</summary>
+		[XmlElement("Подпись", Order = 2)]
+		public byte[] Sign { get => _Sign; set => Set(ref _Sign, value); }
 		#endregion
 
 		#region LengthKey: Description
 		/// <summary>Description</summary>
 		private int _LengthKey = 2048;
 		/// <summary>Description</summary>
-		[XmlElement("Длина_ключа")]
+		[XmlElement("Длина_ключа", Order = 3)]
 		public int LengthKey { get => _LengthKey; set => Set(ref _LengthKey, value); }
 		#endregion
 		public void SaveToFile(string path)

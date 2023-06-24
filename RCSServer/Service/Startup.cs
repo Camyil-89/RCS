@@ -1,8 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using RCS.Certificates;
-using RCS.Models;
-using RCS.Service.UI;
-using RCS.Views.Pages.Main;
+using RCS.Service;
+using RCSServer.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +10,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 
-namespace RCS.Service
+namespace RCSServer.Service
 {
 	public static class Startup
 	{
@@ -21,12 +20,6 @@ namespace RCS.Service
 			if (IsInit)
 				return;
 			IsInit = true;
-
-			try
-			{
-				//Service.Certificate.CertificateProvider.Test();
-			}
-			catch (Exception ex) { Console.WriteLine(ex); }
 
 
 			Log.WriteLine($"Startup.Init", LogLevel.Warning);
@@ -50,12 +43,8 @@ namespace RCS.Service
 			NavigationCommands.Search.InputGestures.Clear();
 			NavigationCommands.Zoom.InputGestures.Clear();
 
-			Navigate.SelectMenu(App.Host.Services.GetRequiredService<CreateCertificatePage>());
-			//var cert = XmlProvider.Load<Certificate>("C:\\Users\\zhuko\\Documents\\RCS\\Сертификат.сертификат");
-			//Console.WriteLine(cert.Info.Raw());
-			//Console.WriteLine($"{cert.LengthKey};{cert.Info.RawByte().Length}");
-			//Console.WriteLine($"{string.Join(";", cert.Info.RawByte())}");
-			//Console.WriteLine($"{cert.Verify(cert.Info.RawByte(), cert.Sign)}");
+			//Navigate.SelectMenu(App.Host.Services.GetRequiredService<CreateCertificatePage>());
+			RCSServer.Service.Settings.Instance.CertificatesStore.PathStore = XmlProvider.PathToTrustedCertificates;
 		}
 
 		private static void MainWindow_Closed(object? sender, EventArgs e)
@@ -64,12 +53,23 @@ namespace RCS.Service
 			{
 				window.Close();
 			}
+			try
+			{
+				XmlProvider.Save<SettingsParametrs>($"{XmlProvider.PathToSave}\\settings.xml", RCSServer.Service.Settings.Instance.Parametrs);
+			}
+			catch { }
 		}
 
 		public static void MainWindow_Loaded(object sender, System.Windows.RoutedEventArgs e)
 		{
 			Log.WriteLine($"Startup.MainWindow_Loaded", LogLevel.Warning);
-			Settings.Instance.CertificateStore.Load();
+			RCSServer.Service.Settings.Instance.CertificatesStore.Load();
+			//RCS.Service.Settings.Instance.CertificateStore = RCSServer.Service.Settings.Instance.CertificatesStore;
+			try
+			{
+				RCS.Service.UI.WindowManager.ShowInfoAboutCertificate(RCS.Certificates.CertificateManager.RCSLoadCertificate("C:\\Users\\zhuko\\Documents\\RCS\\1.сертификат"));
+			}
+			catch (Exception ex) { Console.WriteLine(ex); }
 		}
 	}
 }
