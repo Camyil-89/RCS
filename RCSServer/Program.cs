@@ -18,7 +18,8 @@ namespace RCSServer
 		[STAThread]
 		public static void Main(string[] args)
 		{
-			XmlProvider.PathToTrustedCertificates = $"{XmlProvider.PathToSave}\\ServerTrustedCertificates";
+			XmlProvider.PathToSave = $"{XmlProvider.PathToSave}\\Server";
+			XmlProvider.PathToTrustedCertificates = $"{XmlProvider.PathToSave}\\TrustedCertificates";
 			Directory.SetCurrentDirectory($"{new FileInfo(Process.GetCurrentProcess().MainModule.FileName).DirectoryName}");
 			Directory.CreateDirectory(XmlProvider.PathToSave);
 			Directory.CreateDirectory(XmlProvider.PathToTrustedCertificates);
@@ -26,6 +27,7 @@ namespace RCSServer
 			app.InitializeComponent();
 			Load();
 			app.Run();
+			RCSServer.Service.Startup.Server.Stop();
 		}
 		public static IHostBuilder CreateHostBuilder(string[] args)
 		{

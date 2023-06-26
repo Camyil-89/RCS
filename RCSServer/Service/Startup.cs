@@ -17,6 +17,7 @@ namespace RCSServer.Service
 	public static class Startup
 	{
 		private static bool IsInit = false;
+		public static RCS.Net.Tcp.RCSTCPListener Server = new RCS.Net.Tcp.RCSTCPListener();
 		public static void Init()
 		{
 			if (IsInit)
@@ -47,8 +48,7 @@ namespace RCSServer.Service
 
 
 
-			RCS.Net.Tcp.RCSTCPListener listener = new RCS.Net.Tcp.RCSTCPListener();
-			listener.Start(1991);
+			Server.Start(1991);
 
 			RCS.Net.Tcp.RCSTCPClient client = new RCS.Net.Tcp.RCSTCPClient();
 			client.Connect(IPAddress.Parse("127.0.0.1"), 1991);

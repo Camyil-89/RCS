@@ -38,8 +38,21 @@ namespace RCS.Net.Tcp
 				Client.Connect(ip, socket);
 				Connection = new RCSTCPConnection(Client.GetStream());
 				Connection.CallbackReceiveEvent += Connection_CallbackReceiveEvent;
-				Connection.Start();
+				Connection.Start(true);
 				CallbackClientStatusEvent?.Invoke(ConnectStatus.Connect);
+				Task.Run(() =>
+				{
+
+					while (Client != null && Client.Connected)
+					{
+						var packet = Connection.SendAndWait(new Ping());
+						if (packet.Type == PacketType.Ping)
+						{
+							Console.WriteLine($"[CLIENT] ping: {(DateTime.Now - ((Ping)packet).Time).TotalMilliseconds}");
+						}
+						Thread.Sleep(1000);
+					}
+				});
 				Console.WriteLine($"[CLIENT] Connect");
 				return true;
 			}

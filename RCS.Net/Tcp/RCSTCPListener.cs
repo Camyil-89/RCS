@@ -12,8 +12,7 @@ namespace RCS.Net.Tcp
 	public class RCSTCPListener
 	{
 		public TcpListener TcpListener { get; private set; }
-
-
+		private List<TcpClient> Clients = new List<TcpClient>();
 		public void Start(int socket)
 		{
 			TcpListener = new TcpListener(IPAddress.Any, socket);
@@ -29,32 +28,40 @@ namespace RCS.Net.Tcp
 				try
 				{
 					var client = TcpListener.AcceptTcpClient();
-					Task.Run(() => { HandlerClient(client); });
+					Clients.Add(client);
+					Thread thread = new Thread(() => { HandlerClient(client); });
+					thread.Start();
+					
 				}
 				catch (Exception e) { Console.WriteLine(e); }
 			}
 		}
 		private void HandlerClient(TcpClient Client)
 		{
-			Console.WriteLine($"[SERVER] {Client.Client.RemoteEndPoint}");
+			var ip_client = Client.Client.RemoteEndPoint;
+			Console.WriteLine($"[SERVER] {ip_client}");
 
 			RCSTCPConnection connection = new RCSTCPConnection(Client.GetStream());
 			connection.CallbackReceiveEvent += Connection_CallbackReceiveEvent;
-			connection.Start();
+			connection.Start(false);
 			while (Client != null && Client.Connected)
 			{
-				var packet = connection.SendAndWait(new Ping());
-				if (packet.Type == PacketType.Ping)
-				{
-					Console.WriteLine($"[SERVER] ping: {(DateTime.Now - ((Ping)packet).Time).TotalMilliseconds}");
-				}
+				//var packet = connection.SendAndWait(new Ping());
+				//if (packet.Type == PacketType.Ping)
+				//{
+				//	Console.WriteLine($"[SERVER] ping: {(DateTime.Now - ((Ping)packet).Time).TotalMilliseconds}");
+				//}
 				Thread.Sleep(1000);
 			}
+			Console.WriteLine($"[SERVER] disconnect: {ip_client}");
+			Clients.Remove(Client);
 		}
 
 		private void Connection_CallbackReceiveEvent(Packets.BasePacket packet)
 		{
 			Console.WriteLine($"[SERVER RX] {packet}");
+			if (packet.Type == PacketType.Ping)
+				packet.Answer(packet);
 		}
 
 		public void Stop()
@@ -63,6 +70,18 @@ namespace RCS.Net.Tcp
 			{
 				TcpListener.Stop();
 				TcpListener = null;
+			}
+			while (Clients.Count > 0)
+			{
+				try
+				{
+					foreach (var i in Clients)
+					{
+						i.Close();
+						i.Dispose();
+					}
+				} catch { }
+				Thread.Sleep(1);
 			}
 		}
 	}
