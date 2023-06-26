@@ -1,0 +1,111 @@
+﻿<Page x:Class="RCS.Views.Pages.Main.CenterCertificationsPage"
+	  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+	  xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+	  xmlns:local="clr-namespace:RCS.Views.Pages.Main"
+	  xmlns:CUI="clr-namespace:RCS.Service.UI"
+	  mc:Ignorable="d" 
+	   d:DesignHeight="450"
+	  d:DesignWidth="650"
+	  d:Background="White"
+	  Title="CenterCertificationsPage"
+	   DataContext="{Binding CenterCertificationsPageVM, Source={StaticResource Locator}}">
+	<Page.Resources>
+		<Style TargetType="TextBlock">
+			<Setter Property="FontSize" Value="14"/>
+		</Style>
+		<Style TargetType="TextBox">
+			<Setter Property="FontSize" Value="14"/>
+			<Setter Property="VerticalContentAlignment" Value="Center"/>
+			<Setter Property="Height" Value="20"/>
+		</Style>
+		<Style TargetType="CUI:ToolTipTextBlock">
+			<Setter Property="FontSize" Value="14"/>
+			<Setter Property="VerticalAlignment" Value="Center"/>
+			<Setter Property="Height" Value="20"/>
+			<Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+			<Setter Property="ToolTipService.InitialShowDelay" Value="250"/>
+		</Style>
+	</Page.Resources>
+
+	<Grid Margin="2">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="200"/>
+			<ColumnDefinition/>
+		</Grid.ColumnDefinitions>
+		<Grid Grid.Column="0">
+			<StackPanel Orientation="Vertical">
+				<TextBlock Margin="5">
+				<Hyperlink Style="{StaticResource NavigationHyperLink}"
+						   FontSize="14"
+						   Tag="{Binding TagSelectMenuConnections}"
+						   Command="{Binding SelectMenuCommand}"
+						   CommandParameter="connections">Подключение</Hyperlink>
+				</TextBlock>
+			</StackPanel>
+		</Grid>
+		<Grid Grid.Column="1">
+			<ScrollViewer HorizontalScrollBarVisibility="Disabled"
+						  VerticalScrollBarVisibility="Auto">
+				<StackPanel Orientation="Vertical">
+					<GroupBox Header="Подключение к центру сертификации"
+						  Visibility="{Binding VisibilityConnectionMenu}"
+						  d:Visibility="Visible">
+						<StackPanel Orientation="Vertical">
+							<Grid Margin="0 0 0 5">
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="280"/>
+									<ColumnDefinition/>
+								</Grid.ColumnDefinitions>
+								<TextBlock Text="IP адрес"/>
+								<Grid Grid.Column="1">
+									<Grid.ColumnDefinitions>
+										<ColumnDefinition/>
+										<ColumnDefinition/>
+										<ColumnDefinition/>
+										<ColumnDefinition/>
+									</Grid.ColumnDefinitions>
+									<TextBox Grid.Column="0" Text="{Binding Settings.Parametrs.Client.IPAddress[0]}" Margin="0 0 4 0"/>
+									<TextBox Grid.Column="1" Text="{Binding Settings.Parametrs.Client.IPAddress[1]}" Margin="0 0 4 0"/>
+									<TextBox Grid.Column="2" Text="{Binding Settings.Parametrs.Client.IPAddress[2]}" Margin="0 0 4 0"/>
+									<TextBox Grid.Column="3" Text="{Binding Settings.Parametrs.Client.IPAddress[3]}"/>
+								</Grid>
+							</Grid>
+							<Grid Margin="0 0 0 5">
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="280"/>
+									<ColumnDefinition/>
+								</Grid.ColumnDefinitions>
+								<TextBlock Text="Порт"/>
+								<TextBox Text="{Binding Settings.Parametrs.Client.Port}"
+										 Grid.Column="1"/>
+							</Grid>
+							<Grid Margin="0 15 0 5">
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="120"/>
+									<ColumnDefinition Width="120"/>
+									<ColumnDefinition/>
+								</Grid.ColumnDefinitions>
+								<Button Style="{StaticResource BaseButton}"
+										Content="Подключиться"
+										Width="115"
+										IsEnabled="{Binding EnableConnectButton}"
+										Command="{Binding ConnectCommand}"/>
+								<Button Style="{StaticResource BaseButton}"
+										Content="Отключиться"
+										Grid.Column="1"
+										IsEnabled="{Binding EnableDisconnectButton}"
+										Command="{Binding DisconnectCommand}"
+										Width="115"/>
+								<CUI:ToolTipTextBlock Text="{Binding ClientStatusText}"
+													  ToolTip="{Binding ClientStatusText}"
+													  Grid.Column="2"/>
+							</Grid>
+						</StackPanel>
+					</GroupBox>
+				</StackPanel>
+			</ScrollViewer>
+		</Grid>
+	</Grid>
+</Page>

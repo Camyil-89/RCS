@@ -25,6 +25,8 @@ namespace RCS.Net.Tcp
 		public RCSTCPConnection Connection { get; private set; }
 		public int BufferSize { get; private set; } = 1024; // 1 kb
 
+		public double Ping { get; private set; } = -1;
+
 		public delegate void CallbackClientStatus(ConnectStatus connect);
 		public event CallbackClientStatus CallbackClientStatusEvent;
 
@@ -42,16 +44,34 @@ namespace RCS.Net.Tcp
 				CallbackClientStatusEvent?.Invoke(ConnectStatus.Connect);
 				Task.Run(() =>
 				{
-
-					while (Client != null && Client.Connected)
+					Stopwatch stopwatch_ping = Stopwatch.StartNew();
+					int count_timeout = 0;
+					while (Client != null && Client.Connected && Client.Client.Connected)
 					{
-						var packet = Connection.SendAndWait(new Ping());
-						if (packet.Type == PacketType.Ping)
+						try
 						{
-							Console.WriteLine($"[CLIENT] ping: {(DateTime.Now - ((Ping)packet).Time).TotalMilliseconds}");
+							if (stopwatch_ping.ElapsedMilliseconds >= 1000)
+							{
+								stopwatch_ping.Restart();
+								count_timeout = 0;
+								var packet = (Ping)Connection.SendAndWait(new Ping());
+								Ping = (DateTime.Now - packet.Time).TotalMilliseconds;
+							}
 						}
-						Thread.Sleep(1000);
+						catch (TimeoutException)
+						{
+							count_timeout++;
+							if (count_timeout == 5)
+							{
+								Console.WriteLine($"[CLIENT] lost connection timeout");
+								break;
+							}
+						}
+						catch { }
+						Thread.Sleep(1);
 					}
+					Connection.Abort();
+					CallbackClientStatusEvent?.Invoke(ConnectStatus.Disconnect);
 				});
 				Console.WriteLine($"[CLIENT] Connect");
 				return true;
@@ -73,6 +93,7 @@ namespace RCS.Net.Tcp
 				Client.Close();
 				Client.Dispose();
 				CallbackClientStatusEvent?.Invoke(ConnectStatus.Disconnect);
+				Connection.Abort();
 			}
 			Client = null;
 		}

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RCSServer"
         mc:Ignorable="d"
-        Title="Российский центр сертификации"
+        Title="РСС Центр сертификации"
         Height="450"
         Width="800"
         ResizeMode="CanMinimize"

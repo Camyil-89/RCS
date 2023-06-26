@@ -1,6 +1,7 @@
 ﻿using RCS.Net.Tcp;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -12,7 +13,7 @@ using System.Xml.Linq;
 
 namespace RCS.Net.Packets
 {
-	public enum PacketType: byte
+	public enum PacketType : byte
 	{
 		None = 0,
 		Ping = 1,
@@ -21,6 +22,7 @@ namespace RCS.Net.Packets
 		RequestSignCertificate = 4,
 		SignCertificate = 5,
 		RSAGetKeys = 6,
+		RSAConfirm = 7,
 	}
 	[Serializable]
 	public abstract class BasePacket
@@ -96,18 +98,15 @@ namespace RCS.Net.Packets
 		{
 			return key.Equals(new RSAParameters());
 		}
-
 		private byte[] EncryptWithRSA(byte[] data, RSAParameters publicKey)
 		{
 			using (var rsa = new RSACryptoServiceProvider())
 			{
 				rsa.ImportParameters(publicKey);
-
 				// Генерируем симметричный ключ AES
 				using (var aes = Aes.Create())
 				{
 					aes.GenerateKey();
-
 					// Шифруем данные с помощью AES
 					byte[] encryptedData = EncryptWithAES(data, aes.Key);
 

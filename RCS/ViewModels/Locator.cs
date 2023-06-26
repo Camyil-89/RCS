@@ -16,9 +16,11 @@ namespace RCS.ViewModels
 		public CreateCertificatePage CreateCertificatePage => App.Host.Services.GetRequiredService<CreateCertificatePage>();
 		public TrustedCertificatesPage TrustedCertificatesPage => App.Host.Services.GetRequiredService<TrustedCertificatesPage>();
 		public CheckCertificatePage CheckCertificatePage => App.Host.Services.GetRequiredService<CheckCertificatePage>();
+		public CenterCertificationsPage CenterCertificationsPage => App.Host.Services.GetRequiredService<CenterCertificationsPage>();
 
 		public CreateCertificatePageVM CreateCertificatePageVM => App.Host.Services.GetRequiredService<CreateCertificatePageVM>();
 		public TrustedCertificatesPageVM TrustedCertificatesPageVM => App.Host.Services.GetRequiredService<TrustedCertificatesPageVM>();
 		public CheckCertificatePageVM CheckCertificatePageVM => App.Host.Services.GetRequiredService<CheckCertificatePageVM>();
+		public CenterCertificationsPageVM CenterCertificationsPageVM => App.Host.Services.GetRequiredService<CenterCertificationsPageVM>();
 	}
 }

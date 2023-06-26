@@ -49,6 +49,13 @@ namespace RCS.ViewModels.Windows
 		public string SelectedPageTrustedCertificates { get => _SelectedPageTrustedCertificates; set => Set(ref _SelectedPageTrustedCertificates, value); }
 		#endregion
 
+		#region SelectedPageCenterCertifications: Description
+		/// <summary>Description</summary>
+		private string _SelectedPageCenterCertifications;
+		/// <summary>Description</summary>
+		public string SelectedPageCenterCertifications { get => _SelectedPageCenterCertifications; set => Set(ref _SelectedPageCenterCertifications, value); }
+		#endregion
+
 		#region SelectedPage: Description
 		/// <summary>Description</summary>
 		private Page _SelectedPage;

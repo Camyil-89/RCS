@@ -50,8 +50,8 @@ namespace RCSServer.Service
 
 			Server.Start(1991);
 
-			RCS.Net.Tcp.RCSTCPClient client = new RCS.Net.Tcp.RCSTCPClient();
-			client.Connect(IPAddress.Parse("127.0.0.1"), 1991);
+			//RCS.Net.Tcp.RCSTCPClient client = new RCS.Net.Tcp.RCSTCPClient();
+			//client.Connect(IPAddress.Parse("127.0.0.1"), 1991);
 			//client.Send(new Ping());
 
 

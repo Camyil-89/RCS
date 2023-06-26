@@ -35,6 +35,11 @@
 						Tag="{Binding SelectedPageTrustedCertificates}"
 						Command="{Binding SelectPageCommand}"
 						CommandParameter="{Binding TrustedCertificatesPage,Source={StaticResource Locator}}"/>
+				<Button Content="Центр сертификации"
+						Style="{StaticResource LeftMenu}"
+						Tag="{Binding SelectedPageCenterCertifications}"
+						Command="{Binding SelectPageCommand}"
+						CommandParameter="{Binding CenterCertificationsPage,Source={StaticResource Locator}}"/>
 			</StackPanel>
 		</StackPanel>
 		<Grid Grid.Column="1">

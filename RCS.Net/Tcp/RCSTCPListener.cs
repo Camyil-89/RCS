@@ -44,22 +44,26 @@ namespace RCS.Net.Tcp
 			RCSTCPConnection connection = new RCSTCPConnection(Client.GetStream());
 			connection.CallbackReceiveEvent += Connection_CallbackReceiveEvent;
 			connection.Start(false);
-			while (Client != null && Client.Connected)
+			while (Client != null && Client.Connected && Client.Client.Connected)
 			{
-				//var packet = connection.SendAndWait(new Ping());
-				//if (packet.Type == PacketType.Ping)
-				//{
-				//	Console.WriteLine($"[SERVER] ping: {(DateTime.Now - ((Ping)packet).Time).TotalMilliseconds}");
-				//}
-				Thread.Sleep(1000);
+				try
+				{
+					Thread.Sleep(1000);
+					var packet = connection.SendAndWait(new Ping());
+					if (packet.Type == PacketType.Ping)
+					{
+						Console.WriteLine($"[SERVER {Clients.Count}] ping: {(DateTime.Now - ((Ping)packet).Time).TotalMilliseconds}");
+					}
+				} catch { }
 			}
+			connection.Abort();
 			Console.WriteLine($"[SERVER] disconnect: {ip_client}");
 			Clients.Remove(Client);
 		}
 
 		private void Connection_CallbackReceiveEvent(Packets.BasePacket packet)
 		{
-			Console.WriteLine($"[SERVER RX] {packet}");
+			//Console.WriteLine($"[SERVER RX] {packet}");
 			if (packet.Type == PacketType.Ping)
 				packet.Answer(packet);
 		}

@@ -41,9 +41,11 @@ namespace RCS
 			services.AddSingleton<ViewModels.Pages.Main.CreateCertificatePageVM>();
 			services.AddSingleton<ViewModels.Pages.Main.TrustedCertificatesPageVM>();
 			services.AddSingleton<ViewModels.Pages.Main.CheckCertificatePageVM>();
+			services.AddSingleton<ViewModels.Pages.Main.CenterCertificationsPageVM>();
 			services.AddSingleton<Views.Pages.Main.CreateCertificatePage>();
 			services.AddSingleton<Views.Pages.Main.TrustedCertificatesPage>();
 			services.AddSingleton<Views.Pages.Main.CheckCertificatePage>();
+			services.AddSingleton<Views.Pages.Main.CenterCertificationsPage>();
 			services.AddSingleton<Service.Settings>();
 		}
 	}
