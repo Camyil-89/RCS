@@ -2,6 +2,7 @@
 using RCS.Certificates;
 using RCS.Models;
 using RCS.Service.UI;
+using RCS.Service.UI.Client;
 using RCS.Views.Pages.Main;
 using System;
 using System.Collections.Generic;
@@ -51,6 +52,9 @@ namespace RCS.Service
 			NavigationCommands.Zoom.InputGestures.Clear();
 
 			Navigate.SelectMenu(App.Host.Services.GetRequiredService<CreateCertificatePage>());
+
+			if (Settings.Instance.Parametrs.Client.AutoStartClient)
+				ClientManager.Connect();
 			//var cert = XmlProvider.Load<Certificate>("C:\\Users\\zhuko\\Documents\\RCS\\Сертификат.сертификат");
 			//Console.WriteLine(cert.Info.Raw());
 			//Console.WriteLine($"{cert.LengthKey};{cert.Info.RawByte().Length}");

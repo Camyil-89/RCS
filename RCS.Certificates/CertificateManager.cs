@@ -64,7 +64,7 @@ namespace RCS.Certificates
 			{
 				cert = XmlProvider.LoadInzip<Certificates.Certificate>(path, XmlProvider.NameFileCertificateInZip);
 				sign = XmlProvider.ReadInZip(path, XmlProvider.NameFileCertificateSignInZip);
-				var root = Store.FindMasterCertificate(cert);
+				var root = Store.FindMasterCertificate(cert).Certificate;
 				if (root == null)
 				{
 					signInfo.Status = SignStatus.NotTrusted;

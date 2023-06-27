@@ -150,7 +150,7 @@ namespace RCS.ViewModels.Pages.Main
 				{
 					SelectedCertificate = Certificates.CertificateManager.RCSLoadCertificateSecret(dialog.FileName);
 					Settings.Instance.CertificateStore.Load();
-					var root = Settings.Instance.CertificateStore.FindMasterCertificate(SelectedCertificate.Certificate);
+					var root = Settings.Instance.CertificateStore.FindMasterCertificate(SelectedCertificate.Certificate).Certificate;
 
 					if (root == null)
 					{

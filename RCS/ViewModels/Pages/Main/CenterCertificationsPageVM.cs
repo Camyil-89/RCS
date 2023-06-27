@@ -28,8 +28,59 @@ namespace RCS.ViewModels.Pages.Main
 		/// <summary>Description</summary>
 		public Visibility VisibilityConnectionMenu { get => _VisibilityConnectionMenu; set => Set(ref _VisibilityConnectionMenu, value); }
 		#endregion
+
+
+		#region VisibilityMenuCertificate: Description
+		/// <summary>Description</summary>
+		private Visibility _VisibilityMenuCertificate = Visibility.Collapsed;
+		/// <summary>Description</summary>
+		public Visibility VisibilityMenuCertificate { get => _VisibilityMenuCertificate; set => Set(ref _VisibilityMenuCertificate, value); }
 		#endregion
 
+
+		#region VisibilityCheckCertificate: Description
+		/// <summary>Description</summary>
+		private Visibility _VisibilityCheckCertificate = Visibility.Collapsed;
+		/// <summary>Description</summary>
+		public Visibility VisibilityCheckCertificate { get => _VisibilityCheckCertificate; set => Set(ref _VisibilityCheckCertificate, value); }
+		#endregion
+
+
+		#region VisibilityRequestCertificate: Description
+		/// <summary>Description</summary>
+		private Visibility _VisibilityRequestCertificate = Visibility.Collapsed;
+		/// <summary>Description</summary>
+		public Visibility VisibilityRequestCertificate { get => _VisibilityRequestCertificate; set => Set(ref _VisibilityRequestCertificate, value); }
+		#endregion
+
+
+
+		#region TagReqCert: Description
+		/// <summary>Description</summary>
+		private string _TagReqCert;
+		/// <summary>Description</summary>
+		public string TagReqCert { get => _TagReqCert; set => Set(ref _TagReqCert, value); }
+		#endregion
+
+		#region TagCheckCert: Description
+		/// <summary>Description</summary>
+		private string _TagCheckCert;
+		/// <summary>Description</summary>
+		public string TagCheckCert { get => _TagCheckCert; set => Set(ref _TagCheckCert, value); }
+		#endregion
+
+		#region LastUpdateKeysText: Description
+		/// <summary>Description</summary>
+		private string _LastUpdateKeysText;
+		/// <summary>Description</summary>
+		public string LastUpdateKeysText { get => _LastUpdateKeysText; set => Set(ref _LastUpdateKeysText, value); }
+		#endregion
+		#region PingText: Description
+		/// <summary>Description</summary>
+		private string _PingText;
+		/// <summary>Description</summary>
+		public string PingText { get => _PingText; set => Set(ref _PingText, value); }
+		#endregion
 
 		#region TagSelectMenuConnections: Description
 		/// <summary>Description</summary>
@@ -60,6 +111,7 @@ namespace RCS.ViewModels.Pages.Main
 		private bool _EnableDisconnectButton = false;
 		/// <summary>Description</summary>
 		public bool EnableDisconnectButton { get => _EnableDisconnectButton; set => Set(ref _EnableDisconnectButton, value); }
+		#endregion
 		#endregion
 		#region Commands
 
@@ -95,23 +147,16 @@ namespace RCS.ViewModels.Pages.Main
 		#endregion
 
 
-		#region TestCommand: Description
-		private ICommand _TestCommand;
-		public ICommand TestCommand => _TestCommand ??= new LambdaCommand(OnTestCommandExecuted, CanTestCommandExecute);
-		private bool CanTestCommandExecute(object e) => true;
-		private void OnTestCommandExecuted(object e)
+		#region OpenMenuCertificateCommand: Description
+		private ICommand _OpenMenuCertificateCommand;
+		public ICommand OpenMenuCertificateCommand => _OpenMenuCertificateCommand ??= new LambdaCommand(OnOpenMenuCertificateCommandExecuted, CanOpenMenuCertificateCommandExecute);
+		private bool CanOpenMenuCertificateCommandExecute(object e) => true;
+		private void OnOpenMenuCertificateCommandExecuted(object e)
 		{
-			try
-			{
-				foreach (var i in Service.UI.Client.ClientManager.GetLastCertificates())
-				{
-					Console.WriteLine(i);
-					i.SaveToFile($"{XmlProvider.PathToTrustedCertificates}\\{i.Info.UID}");
-				}
-			}
-			catch (Exception ex) { Console.WriteLine(ex); }
+			VisibilityMenuCertificate = VisibilityMenuCertificate == Visibility.Collapsed ? Visibility.Visible: Visibility.Collapsed;
 		}
 		#endregion
+
 		#endregion
 
 		#region Functions

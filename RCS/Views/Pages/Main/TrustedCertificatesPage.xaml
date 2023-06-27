@@ -23,6 +23,11 @@
             <Button Content="Обновить"
                     Command="{Binding UpdateTrustedCommand}"
                     Style="{StaticResource BaseButton}"/>
+			<Button Content="Получить у ЦС"
+                    Command="{Binding GetCertificatesFromCenterCommand}"
+					Margin="5 0 0 0"
+					IsEnabled="{Binding CenterCertificationsPageVM.EnableDisconnectButton, Source={StaticResource Locator}}"
+                    Style="{StaticResource BaseButton}"/>
         </StackPanel>
         <Grid Grid.Row="1" Margin="0 2 0 0">
             <DataGrid ItemsSource="{Binding Settings.CertificateStore.CertificatesView}"

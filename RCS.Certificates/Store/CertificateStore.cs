@@ -12,6 +12,40 @@ using System.Windows.Media.Animation;
 
 namespace RCS.Certificates.Store
 {
+	public enum StatusSearch: byte
+	{
+		Find = 1,
+		NotFoundParent = 2,
+		TimeDead = 3,
+		NotValid = 4,
+		ParentTimeDead = 5,
+	}
+	public class SearchCertificateInfo: Base.ViewModel.BaseViewModel
+	{
+
+		#region Status: Description
+		/// <summary>Description</summary>
+		private StatusSearch _Status = StatusSearch.NotFoundParent;
+		/// <summary>Description</summary>
+		public StatusSearch Status { get => _Status; set => Set(ref _Status, value); }
+		#endregion
+
+
+		#region Certificate: Description
+		/// <summary>Description</summary>
+		private Certificate _Certificate = null;
+		/// <summary>Description</summary>
+		public Certificate Certificate { get => _Certificate; set => Set(ref _Certificate, value); }
+		#endregion
+
+
+		#region LastParent: Description
+		/// <summary>Description</summary>
+		private Certificate _LastParent = null;
+		/// <summary>Description</summary>
+		public Certificate LastParent { get => _LastParent; set => Set(ref _LastParent, value); }
+		#endregion
+	}
     public class CertificateStore : Base.ViewModel.BaseViewModel
     {
         public string PathStore = XmlProvider.PathToTrustedCertificates;
@@ -58,7 +92,7 @@ namespace RCS.Certificates.Store
             }
             foreach (var i in Certificates)
             {
-                var root = FindMasterCertificate(i.Certificate);
+                var root = FindMasterCertificate(i.Certificate).Certificate;
                 if (root == null)
                     i.ValidType = ValidType.NotValid;
                 CertificatesView.Add(i);
@@ -71,10 +105,6 @@ namespace RCS.Certificates.Store
             }
             foreach (var item in remove)
                 Certificates.Remove(item);
-			//if (corrupt.Count > 0)
-			//{
-			//    Service.UI.MessageBoxHelper.WarningShow($"Не удалось загрузить некотрые сертификаты! возможно они повреждены!\n\n{string.Join("\n", corrupt)}");
-			//}
 			return corrupt;
         }
         public void Validate()
@@ -103,25 +133,27 @@ namespace RCS.Certificates.Store
             }
             return ValidType.NotValid;
         }
-        public Certificate FindMasterCertificate(Certificates.Certificate certificate)
+        public SearchCertificateInfo FindMasterCertificate(Certificates.Certificate certificate, Certificate last_parent = null)
         {
-            if (certificate == null || certificate.Info.DateDead < DateTime.Now)
-                return null;
+            if (certificate == null)
+				return new SearchCertificateInfo() { Status = StatusSearch.NotFoundParent, LastParent = last_parent == null ? certificate: last_parent };
+			if (certificate.Info.DateDead < DateTime.Now)
+				return new SearchCertificateInfo() { Status = StatusSearch.TimeDead };
             if (certificate.Info.UID == certificate.Info.MasterUID)
             {
                 if (certificate.Verify(certificate.Info.RawByte(), certificate.Sign) == false)
-                    return null;
-                return certificate;
+                     return new SearchCertificateInfo() { Status = StatusSearch.NotValid };
+				return new SearchCertificateInfo() { Status = StatusSearch.Find, Certificate = certificate };
             }
             var item = GetItem(certificate.Info.MasterUID);
             if (item == null)
-                return null;
-            var cert = item.Certificate;
+				return new SearchCertificateInfo() { Status = StatusSearch.NotFoundParent, LastParent = last_parent == null ? certificate : last_parent };
+			var cert = item.Certificate;
             if (cert.Info.DateDead < DateTime.Now)
-                return null;
-            if (cert.Verify(certificate.Info.RawByte(), certificate.Sign) == false)
-                return null;
-            return FindMasterCertificate(cert);
+				return new SearchCertificateInfo() { Status = StatusSearch.ParentTimeDead };
+			if (cert.Verify(certificate.Info.RawByte(), certificate.Sign) == false)
+				return new SearchCertificateInfo() { Status = StatusSearch.NotValid };
+			return FindMasterCertificate(cert, certificate);
         }
     }
 }

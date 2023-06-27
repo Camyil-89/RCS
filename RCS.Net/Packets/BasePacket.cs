@@ -15,14 +15,16 @@ namespace RCS.Net.Packets
 {
 	public enum PacketType : byte
 	{
-		None = 0,
-		Ping = 1,
-		RequestCertificates = 2,
-		TrustedCertificates = 3,
-		RequestSignCertificate = 4,
-		SignCertificate = 5,
-		RSAGetKeys = 6,
-		RSAConfirm = 7,
+		None,
+		Ping,
+		RequestCertificates,
+		RequestCertificate,
+		TrustedCertificates,
+		ValidatingCertificate,
+		RequestSignCertificate,
+		SignCertificate,
+		RSAGetKeys,
+		RSAConfirm,
 	}
 	[Serializable]
 	public abstract class BasePacket

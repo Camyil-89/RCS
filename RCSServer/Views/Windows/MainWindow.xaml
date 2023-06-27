@@ -12,6 +12,6 @@
         WindowStartupLocation="CenterScreen"
         DataContext="{Binding MainVM, Source={StaticResource Locator}}">
     <Grid>
-
-    </Grid>
+		<TextBlock Text="{Binding Test}"/>
+	</Grid>
 </Window>

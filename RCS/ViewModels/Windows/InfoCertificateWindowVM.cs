@@ -13,6 +13,7 @@ using RCS.Base.Command;
 using System.IO;
 using Microsoft.Win32;
 using RCS.Service.UI.Selector;
+using RCS.Service.UI.Client;
 
 namespace RCS.ViewModels.Windows
 {
@@ -90,8 +91,37 @@ namespace RCS.ViewModels.Windows
 			try
 			{
 				Settings.Instance.CertificateStore.Load();
-				var root = Settings.Instance.CertificateStore.FindMasterCertificate(certificate);
-				if (root == null)
+				var info = Settings.Instance.CertificateStore.FindMasterCertificate(certificate);
+				if (info.Status == Certificates.Store.StatusSearch.NotFoundParent)
+				{
+					if (MessageBoxHelper.QuestionShow("Запросить информацию о родительских сертификатах у ЦС?") == MessageBoxResult.Yes)
+					{
+						if (ClientManager.CheckValidCertificate(info.LastParent))
+						{
+							StatusCertificate = "Доверенный";
+							IsTrusted = "1";
+							return;
+						}
+					}
+					else
+					{
+						StatusCertificate = "Недоверенный";
+						IsTrusted = "0";
+					}
+				}
+				else if (info.Status == Certificates.Store.StatusSearch.Find)
+				{
+					StatusCertificate = "Доверенный";
+					IsTrusted = "1";
+					return;
+				}
+				else if (info.Status == Certificates.Store.StatusSearch.TimeDead)
+				{
+					StatusCertificate = "Недействительный";
+					IsTrusted = "0";
+					IsOkTime = "0";
+				}
+				else if (info.Status == Certificates.Store.StatusSearch.NotValid)
 				{
 					IsTrusted = "0";
 					if (VisibilitySelfSign == Visibility.Visible)
@@ -104,9 +134,8 @@ namespace RCS.ViewModels.Windows
 				}
 				else
 				{
-					StatusCertificate = "Доверенный";
-					IsTrusted = "1";
-					return;
+					StatusCertificate = "Недействительный";
+					IsTrusted = "0";
 				}
 			}
 			catch (Exception ex) { }
@@ -123,7 +152,12 @@ namespace RCS.ViewModels.Windows
 			try
 			{
 				var root = Settings.Instance.CertificateStore.GetItem(Certificate.Info.MasterUID);
-				Service.UI.WindowManager.ShowInfoAboutCertificate(root.Certificate);
+				if (root == null && MessageBoxHelper.QuestionShow("Попытаться найти родителя у ЦС?") == MessageBoxResult.Yes)
+				{
+					Service.UI.WindowManager.ShowInfoAboutCertificate(ClientManager.RequestCertificate(Certificate.Info.MasterUID));
+				}
+				else
+					Service.UI.WindowManager.ShowInfoAboutCertificate(root.Certificate);
 			}
 			catch (Exception ex) { MessageBoxHelper.WarningShow($"Не удалось загрузить сертификат!"); }
 		}

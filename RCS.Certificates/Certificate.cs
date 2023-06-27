@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Data.SqlTypes;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -59,8 +61,8 @@ namespace RCS.Certificates
 		[XmlElement("Тип_поля", Order = 3)]
 		public TypeAttribute Type { get => _Type; set => Set(ref _Type, value); }
 		#endregion
-
 		[XmlElement("Значение", Order = 4)]
+		[field: NonSerialized]
 		public XmlCDataSection AttributeValueCData
 		{
 			get
@@ -332,6 +334,14 @@ namespace RCS.Certificates
 
 				bool isSignatureValid = rsa.VerifyData(message, sign, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
 				return isSignatureValid;
+			}
+		}
+		public Certificate FromRaw(string data)
+		{
+			XmlSerializer serializer = new XmlSerializer(typeof(Certificate));
+			using (StringReader stringReader = new StringReader(data))
+			{
+				return (Certificate)serializer.Deserialize(stringReader);
 			}
 		}
 	}

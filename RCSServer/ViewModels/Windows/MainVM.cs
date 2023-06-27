@@ -17,6 +17,13 @@ namespace RCSServer.ViewModels.Windows
 		}
 
 		#region Parametrs
+
+		#region Test: Description
+		/// <summary>Description</summary>
+		private string _Test;
+		/// <summary>Description</summary>
+		public string Test { get => _Test; set => Set(ref _Test, value); }
+		#endregion
 		#endregion
 
 		#region Commands

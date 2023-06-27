@@ -3,12 +3,14 @@ using RCS.Net.Packets;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Net.Sockets;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RCS.Net.Tcp
@@ -34,6 +36,7 @@ namespace RCS.Net.Tcp
 		private RSAParameters PublicKey = new RSAParameters();
 		private bool BlockRX = false;
 		private bool BlockTX = false;
+		private AutoResetEvent eventWaitTXHandle = new AutoResetEvent(false);
 		private int BufferSize { get; set; } = 1024 * 100; // 1kb
 		public int TimeoutWaitPacket { get; set; } = 3000;
 
@@ -56,7 +59,20 @@ namespace RCS.Net.Tcp
 		}
 		public void Send(BasePacket packet)
 		{
+			eventWaitTXHandle.Set();
 			_Packets.Add(packet);
+			if (BlockTX)
+				return;
+			try
+			{
+				do
+				{
+					var raw = _Packets.First().Raw(PublicKey);
+					WriteStream(raw);
+					_Packets.RemoveAt(0);
+				} while (_Packets.Count > 0 && BlockTX == false);
+			}
+			catch (Exception ex) { Console.WriteLine(ex); }
 		}
 		public void Start(bool RSA_initial)
 		{
@@ -66,7 +82,6 @@ namespace RCS.Net.Tcp
 			{
 				BlockRX = true;
 			}
-			Task.Run(TXHandler);
 			Task.Run(RXHandler);
 
 			if (RSA_initial)
@@ -82,9 +97,9 @@ namespace RCS.Net.Tcp
 				BlockRX = true;
 				BlockTX = true;
 				Thread.Sleep(NetworkStream.ReadTimeout + 100);
-				var rsa = new RSACryptoServiceProvider(384); //384, 512, 1024, 2048, 4096.
+				var rsa = new RSACryptoServiceProvider(2048); //384, 512, 1024, 2048, 4096.
 				Packet packet = new Packet();
-				packet.Data = new SRSAParametrs(rsa.ExportParameters(false)) { SizeKey = 384 };
+				packet.Data = new SRSAParametrs(rsa.ExportParameters(false)) { SizeKey = 2048 };
 				packet.Type = PacketType.RSAGetKeys;
 				WriteStream(packet.Raw(PublicKey));
 				var b_packet = WaitPacketReadNetworkStream(PacketType.RSAGetKeys, rsa.ExportParameters(true));
@@ -100,33 +115,6 @@ namespace RCS.Net.Tcp
 			}
 			catch (Exception ex) { Console.WriteLine(ex); throw new Exception(ex.Message); }
 		}
-		private void TXHandler()
-		{
-			Console.WriteLine("START [TXHandler]");
-			try
-			{
-				while (NetworkStream != null && NetworkStream.CanWrite)
-				{
-					if (_Packets.Count > 0 && BlockTX == false)
-					{
-						try
-						{
-							do
-							{
-								//Console.WriteLine($"[CONNECTION] TX {_Packets.First()}");
-								var raw = _Packets.First().Raw(PublicKey);
-								WriteStream(raw);
-								_Packets.RemoveAt(0);
-							} while (_Packets.Count > 0 && BlockTX == false);
-						}
-						catch (Exception ex) { }
-					}
-					Thread.Sleep(1);
-				}
-			}
-			catch (Exception ex) { Console.WriteLine(ex); }
-			Console.WriteLine("END [TXHandler]");
-		}
 		private void WriteStream(byte[] data)
 		{
 			NetworkStream.Write(data);
@@ -136,7 +124,6 @@ namespace RCS.Net.Tcp
 			Console.WriteLine("START [RXHandler]");
 
 			int bytesRead = 0;
-			byte[] buffer = new byte[BufferSize];
 			while (NetworkStream != null && NetworkStream.CanWrite && NetworkStream.CanRead)
 			{
 				Packets.BasePacket packet = null;
@@ -144,10 +131,16 @@ namespace RCS.Net.Tcp
 					continue;
 				try
 				{
-					var data = ReadNetworkStream();
-					if (data == null)
-						continue;
-					packet = new Packet().FromRaw(data, PrivateKey);
+					using (MemoryStream memoryStream = new MemoryStream())
+					{
+						do
+						{
+							bytesRead = NetworkStream.Read(Buffer, 0, Buffer.Length);
+							memoryStream.Write(Buffer, 0, bytesRead);
+						}
+						while (bytesRead == Buffer.Length);
+						packet = new Packet().FromRaw(memoryStream.ToArray(), PrivateKey);
+					}
 					packet.CallbackAnswerEvent += Packet_CallbackAnswerEvent;
 					if (packet.Type == PacketType.RSAGetKeys)
 					{
@@ -243,13 +236,13 @@ namespace RCS.Net.Tcp
 					WaitPackets.Remove(packet.UID);
 					return x;
 				}
-				Thread.Sleep(1);
+				//Thread.Sleep(1);
 			}
 			throw new TimeoutException("Timeout wait packet");
 		}
 		private void Packet_CallbackAnswerEvent(BasePacket packet)
 		{
-			Console.WriteLine($"[CONNECTION] Answer {packet}");
+			//Console.WriteLine($"[CONNECTION] Answer {packet}");
 			Send(packet);
 		}
 	}

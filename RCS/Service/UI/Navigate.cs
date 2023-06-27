@@ -32,9 +32,13 @@ namespace RCS.Service.UI
 		public static void SelectCenterCertificationsMenu(string name)
 		{
 			CenterCertificationsPageVM.VisibilityConnectionMenu = name == "connections" ? System.Windows.Visibility.Visible: System.Windows.Visibility.Collapsed;
+			CenterCertificationsPageVM.VisibilityCheckCertificate = name == "check_cert" ? System.Windows.Visibility.Visible: System.Windows.Visibility.Collapsed;
+			CenterCertificationsPageVM.VisibilityRequestCertificate = name == "req_cert" ? System.Windows.Visibility.Visible: System.Windows.Visibility.Collapsed;
 
 
 			CenterCertificationsPageVM.TagSelectMenuConnections = name == "connections" ? "focus" : "";
+			CenterCertificationsPageVM.TagCheckCert = name == "check_cert" ? "focus" : "";
+			CenterCertificationsPageVM.TagReqCert = name == "req_cert" ? "focus" : "";
 		}
 	}
 }

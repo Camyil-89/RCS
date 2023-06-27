@@ -32,14 +32,14 @@ namespace RCS.Net.Tcp
 		public delegate void CallbackClientStatus(ConnectStatus connect);
 		public event CallbackClientStatus CallbackClientStatusEvent;
 
-		public bool Connect(IPAddress ip, int socket)
+		public bool Connect(string address, int socket)
 		{
 			Disconnect();
 			Client = new TcpClient();
 			CallbackClientStatusEvent?.Invoke(ConnectStatus.Connecting);
 			try
 			{
-				Client.Connect(ip, socket);
+				Client.Connect(address, socket);
 				Connection = new RCSTCPConnection(Client.GetStream());
 				Connection.CallbackReceiveEvent += Connection_CallbackReceiveEvent;
 				Connection.Start(true);

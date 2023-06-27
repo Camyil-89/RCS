@@ -12,13 +12,16 @@ namespace RCS.Net.Tcp
 	public class RCSTCPListener
 	{
 		public TcpListener TcpListener { get; private set; }
-		private List<TcpClient> Clients = new List<TcpClient>();
+		public List<TcpClient> Clients = new List<TcpClient>();
 
 		public delegate void CallbackReceive(BasePacket packet);
 		public event CallbackReceive CallbackReceiveEvent;
 
 		public delegate void CallbackConnectClient(TcpClient client);
 		public event CallbackConnectClient CallbackConnectClientEvent;
+
+		public delegate void CallbackDisconnectClient(EndPoint endPoint);
+		public event CallbackDisconnectClient CallbackDisconnectClientEvent;
 		public void Start(int socket)
 		{
 			TcpListener = new TcpListener(IPAddress.Any, socket);
@@ -39,7 +42,7 @@ namespace RCS.Net.Tcp
 					thread.Start();
 
 				}
-				catch (Exception e) { Console.WriteLine(e); }
+				catch (Exception e) { }
 			}
 		}
 		private void HandlerClient(TcpClient Client)
@@ -65,6 +68,7 @@ namespace RCS.Net.Tcp
 			connection.Abort();
 			Console.WriteLine($"[SERVER] disconnect: {ip_client}");
 			Clients.Remove(Client);
+			CallbackDisconnectClientEvent?.Invoke(ip_client);
 		}
 
 		private void Connection_CallbackReceiveEvent(Packets.BasePacket packet)
