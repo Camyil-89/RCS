@@ -93,6 +93,25 @@ namespace RCS.ViewModels.Pages.Main
 			Service.UI.Client.ClientManager.Connect();
 		}
 		#endregion
+
+
+		#region TestCommand: Description
+		private ICommand _TestCommand;
+		public ICommand TestCommand => _TestCommand ??= new LambdaCommand(OnTestCommandExecuted, CanTestCommandExecute);
+		private bool CanTestCommandExecute(object e) => true;
+		private void OnTestCommandExecuted(object e)
+		{
+			try
+			{
+				foreach (var i in Service.UI.Client.ClientManager.GetLastCertificates())
+				{
+					Console.WriteLine(i);
+					i.SaveToFile($"{XmlProvider.PathToTrustedCertificates}\\{i.Info.UID}");
+				}
+			}
+			catch (Exception ex) { Console.WriteLine(ex); }
+		}
+		#endregion
 		#endregion
 
 		#region Functions

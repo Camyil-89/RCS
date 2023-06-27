@@ -102,7 +102,15 @@
 													  ToolTip="{Binding ClientStatusText}"
 													  Grid.Column="2"/>
 							</Grid>
-						</StackPanel>
+                            <Grid Margin="0 0 0 5">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="280"/>
+                                    <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
+                                <Button Content="asd"
+                                        Command="{Binding TestCommand}"/>
+                            </Grid>
+                        </StackPanel>
 					</GroupBox>
 				</StackPanel>
 			</ScrollViewer>

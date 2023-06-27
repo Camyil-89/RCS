@@ -25,6 +25,8 @@ namespace RCS.Net.Tcp
 		public RCSTCPConnection Connection { get; private set; }
 		public int BufferSize { get; private set; } = 1024; // 1 kb
 
+		public int TimeoutUpdateKeys { get; set; } = 10; // seconds
+
 		public double Ping { get; private set; } = -1;
 
 		public delegate void CallbackClientStatus(ConnectStatus connect);
@@ -45,6 +47,7 @@ namespace RCS.Net.Tcp
 				Task.Run(() =>
 				{
 					Stopwatch stopwatch_ping = Stopwatch.StartNew();
+					Stopwatch stopwatch_update_keys = Stopwatch.StartNew();
 					int count_timeout = 0;
 					while (Client != null && Client.Connected && Client.Client.Connected)
 					{
@@ -57,10 +60,16 @@ namespace RCS.Net.Tcp
 								var packet = (Ping)Connection.SendAndWait(new Ping());
 								Ping = (DateTime.Now - packet.Time).TotalMilliseconds;
 							}
+							if (stopwatch_update_keys.ElapsedMilliseconds >= TimeoutUpdateKeys * 1000)
+							{
+								Connection.UpdateKeys();
+								stopwatch_update_keys.Restart();
+							}
 						}
 						catch (TimeoutException)
 						{
 							count_timeout++;
+							Console.WriteLine($"Timeout error {count_timeout} \\ 5");
 							if (count_timeout == 5)
 							{
 								Console.WriteLine($"[CLIENT] lost connection timeout");

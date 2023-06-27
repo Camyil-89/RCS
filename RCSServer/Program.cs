@@ -27,7 +27,7 @@ namespace RCSServer
 			app.InitializeComponent();
 			Load();
 			app.Run();
-			RCSServer.Service.Startup.Server.Stop();
+			RCSServer.Service.Server.ServerManager.Stop();
 		}
 		public static IHostBuilder CreateHostBuilder(string[] args)
 		{

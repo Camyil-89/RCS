@@ -13,6 +13,12 @@ namespace RCS.Net.Tcp
 	{
 		public TcpListener TcpListener { get; private set; }
 		private List<TcpClient> Clients = new List<TcpClient>();
+
+		public delegate void CallbackReceive(BasePacket packet);
+		public event CallbackReceive CallbackReceiveEvent;
+
+		public delegate void CallbackConnectClient(TcpClient client);
+		public event CallbackConnectClient CallbackConnectClientEvent;
 		public void Start(int socket)
 		{
 			TcpListener = new TcpListener(IPAddress.Any, socket);
@@ -31,7 +37,7 @@ namespace RCS.Net.Tcp
 					Clients.Add(client);
 					Thread thread = new Thread(() => { HandlerClient(client); });
 					thread.Start();
-					
+
 				}
 				catch (Exception e) { Console.WriteLine(e); }
 			}
@@ -39,8 +45,7 @@ namespace RCS.Net.Tcp
 		private void HandlerClient(TcpClient Client)
 		{
 			var ip_client = Client.Client.RemoteEndPoint;
-			Console.WriteLine($"[SERVER] {ip_client}");
-
+			CallbackConnectClientEvent?.Invoke(Client);
 			RCSTCPConnection connection = new RCSTCPConnection(Client.GetStream());
 			connection.CallbackReceiveEvent += Connection_CallbackReceiveEvent;
 			connection.Start(false);
@@ -54,7 +59,8 @@ namespace RCS.Net.Tcp
 					{
 						Console.WriteLine($"[SERVER {Clients.Count}] ping: {(DateTime.Now - ((Ping)packet).Time).TotalMilliseconds}");
 					}
-				} catch { }
+				}
+				catch { }
 			}
 			connection.Abort();
 			Console.WriteLine($"[SERVER] disconnect: {ip_client}");
@@ -66,6 +72,10 @@ namespace RCS.Net.Tcp
 			//Console.WriteLine($"[SERVER RX] {packet}");
 			if (packet.Type == PacketType.Ping)
 				packet.Answer(packet);
+			else
+			{
+				CallbackReceiveEvent?.Invoke(packet);
+			}
 		}
 
 		public void Stop()
@@ -84,7 +94,8 @@ namespace RCS.Net.Tcp
 						i.Close();
 						i.Dispose();
 					}
-				} catch { }
+				}
+				catch { }
 				Thread.Sleep(1);
 			}
 		}

@@ -31,6 +31,7 @@ namespace RCS.Certificates
 		ByteArray = 3,
 	}
 	[XmlType(TypeName = "Поле")]
+	[Serializable]
 	public class CertificateAttribute : Base.ViewModel.BaseViewModel
 	{
 
@@ -150,6 +151,7 @@ namespace RCS.Certificates
 		}
 	}
 	[XmlType(TypeName = "Базовая")]
+	[Serializable]
 	public class CertificateInfo : Base.ViewModel.BaseViewModel
 	{
 		#region MasterUID: Description
@@ -257,6 +259,7 @@ namespace RCS.Certificates
 		}
 	}
 	[XmlType(TypeName = "Сертификат")]
+	[Serializable]
 	public class Certificate : Base.ViewModel.BaseViewModel
 	{
 

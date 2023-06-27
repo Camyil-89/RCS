@@ -41,6 +41,9 @@ namespace RCS.Net.Tcp
 
 		public delegate void CallbackReceive(BasePacket packet);
 		public event CallbackReceive CallbackReceiveEvent;
+
+		public delegate void CallbackUpdateKeys();
+		public event CallbackUpdateKeys CallbackUpdateKeysEvent;
 		public RCSTCPConnection(NetworkStream stream)
 		{
 			NetworkStream = stream;
@@ -78,24 +81,22 @@ namespace RCS.Net.Tcp
 			{
 				BlockRX = true;
 				BlockTX = true;
-
+				Thread.Sleep(NetworkStream.ReadTimeout + 100);
 				var rsa = new RSACryptoServiceProvider(384); //384, 512, 1024, 2048, 4096.
 				Packet packet = new Packet();
 				packet.Data = new SRSAParametrs(rsa.ExportParameters(false)) { SizeKey = 384 };
 				packet.Type = PacketType.RSAGetKeys;
 				WriteStream(packet.Raw(PublicKey));
-				var b_packet = new Packet().FromRaw(WaitReadNetworkStream(), rsa.ExportParameters(true));
+				var b_packet = WaitPacketReadNetworkStream(PacketType.RSAGetKeys, rsa.ExportParameters(true));
 				PublicKey = ((SRSAParametrs[])b_packet.Data)[0].ToRSAParameters();
 				PrivateKey = ((SRSAParametrs[])b_packet.Data)[1].ToRSAParameters();
-				while ((DateTime.Now - ((Ping)b_packet).Time).TotalMilliseconds < 1000)
-				{
-					Thread.Sleep(1);
-				}
 				packet = new Packet() { Type = PacketType.RSAConfirm };
 				WriteStream(packet.Raw(PublicKey));
+				WaitPacketReadNetworkStream(PacketType.RSAConfirm, PrivateKey);
 				BlockRX = false;
 				BlockTX = false;
 				Console.WriteLine($"[CONNECTION] UpdateKeys CONFIRM");
+				CallbackUpdateKeysEvent?.Invoke();
 			}
 			catch (Exception ex) { Console.WriteLine(ex); throw new Exception(ex.Message); }
 		}
@@ -148,18 +149,15 @@ namespace RCS.Net.Tcp
 						continue;
 					packet = new Packet().FromRaw(data, PrivateKey);
 					packet.CallbackAnswerEvent += Packet_CallbackAnswerEvent;
-					if (WaitPackets.ContainsKey(packet.UID))
-					{
-						WaitPackets[packet.UID] = packet;
-					}
-					else if (packet.Type == PacketType.RSAGetKeys)
+					if (packet.Type == PacketType.RSAGetKeys)
 					{
 						BlockTX = true;
 						try
 						{
 							var par = ((SRSAParametrs)packet.Data);
 							RSAParameters rsap = par.ToRSAParameters();
-							Ping packet1 = new Ping();
+							Packet packet1 = new Packet();
+							packet1.Type = PacketType.RSAGetKeys;
 							var rsa = new RSACryptoServiceProvider(par.SizeKey);
 							packet1.Data = new SRSAParametrs[2]
 							{
@@ -173,12 +171,17 @@ namespace RCS.Net.Tcp
 							Console.WriteLine($"[CONNECTION] CreateKeys");
 						}
 						catch (Exception ex) { BlockTX = false; Console.WriteLine(ex); }
-						
+
 					}
 					else if (packet.Type == PacketType.RSAConfirm)
 					{
 						Console.WriteLine($"[CONNECTION] RSAConfirm");
+						WriteStream(packet.Raw(PublicKey));
 						BlockTX = false;
+					}
+					else if (WaitPackets.ContainsKey(packet.UID))
+					{
+						WaitPackets[packet.UID] = packet;
 					}
 					else
 						CallbackReceiveEvent?.Invoke(packet);
@@ -186,6 +189,21 @@ namespace RCS.Net.Tcp
 				catch (Exception ex) { Thread.Sleep(1); }
 			}
 			Console.WriteLine("END [RXHandler]");
+		}
+		private BasePacket WaitPacketReadNetworkStream(PacketType type, RSAParameters parameters)
+		{
+			while (true)
+			{
+				try
+				{
+					var data = ReadNetworkStream();
+					if (data == null)
+						continue;
+					var packet = new Packet().FromRaw(data, parameters);
+					if (packet.Type == type)
+						return packet;
+				} catch (Exception ex) { }
+			}
 		}
 		private byte[] WaitReadNetworkStream()
 		{
@@ -231,7 +249,7 @@ namespace RCS.Net.Tcp
 		}
 		private void Packet_CallbackAnswerEvent(BasePacket packet)
 		{
-			//Console.WriteLine($"[CONNECTION] Answer");
+			Console.WriteLine($"[CONNECTION] Answer {packet}");
 			Send(packet);
 		}
 	}

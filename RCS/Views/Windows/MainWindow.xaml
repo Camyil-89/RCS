@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="Русский стандарт сертификации"
 		Height="450"
-		Width="800"
+		Width="820"
 		MinWidth="800"
 		MinHeight="450"
 		ResizeMode="CanMinimize"
@@ -15,10 +15,12 @@
         DataContext="{Binding MainVM, Source={StaticResource Locator}}">
     <Grid>
 		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="150"/>
+			<ColumnDefinition Width="170"/>
 			<ColumnDefinition/>
 		</Grid.ColumnDefinitions>
-		<StackPanel Orientation="Vertical" Grid.Column="0">
+		<StackPanel Orientation="Vertical"
+                    Grid.Column="0"
+                    Background="#FFF0F0F0">
 			<StackPanel Orientation="Vertical">
 				<Button Content="Создание сертификата"
 						Style="{StaticResource LeftMenu}"

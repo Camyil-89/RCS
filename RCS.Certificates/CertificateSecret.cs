@@ -16,6 +16,7 @@ using System.Xml.Serialization;
 namespace RCS.Certificates
 {
 	[XmlType(TypeName = "Секретная_информация")]
+	[Serializable]
 	public class CertificateSecret : Base.ViewModel.BaseViewModel
     {
         #region PrivateKey: Description
