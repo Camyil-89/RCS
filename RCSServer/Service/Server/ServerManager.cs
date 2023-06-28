@@ -37,7 +37,6 @@ namespace RCSServer.Service.Server
 
 		private static void Server_CallbackReceiveEvent(RCS.Net.Packets.BasePacket packet)
 		{
-			//Console.WriteLine($">>>>>{packet}");
 			if (packet.Type == RCS.Net.Packets.PacketType.RequestCertificates)
 			{
 				List<string> certificates = new List<string>();
@@ -50,9 +49,12 @@ namespace RCSServer.Service.Server
 			}
 			else if (packet.Type == RCS.Net.Packets.PacketType.ValidatingCertificate)
 			{
-				var cert = new Certificate().FromRaw((string)packet.Data);
-				packet.Data = Settings.Instance.CertificatesStore.FindMasterCertificate(cert).Certificate != null;
-				packet.Answer(packet);
+				try
+				{
+					var cert = new Certificate().FromRaw((string)packet.Data);
+					packet.Data = Settings.Instance.CertificatesStore.FindMasterCertificate(cert).Certificate != null;
+					packet.Answer(packet);
+				} catch (Exception ex) { Console.WriteLine(ex); }
 			}
 			else if (packet.Type == RCS.Net.Packets.PacketType.RequestCertificate)
 			{

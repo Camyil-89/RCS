@@ -66,6 +66,10 @@ namespace RCS.Certificates.Store
         {
             Certificates.Add(new StoreItem() { Certificate = certificate });
         }
+        private StoreItem GetItemWithoutValidating(Guid uid)
+		{
+			return Certificates.FirstOrDefault((i) => i.Certificate.Info.UID == uid);
+		}
         public StoreItem GetItem(Guid uid)
         {
             return Certificates.FirstOrDefault((i) => i.ValidType != ValidType.NotValid && i.Certificate.Info.UID == uid);
@@ -86,17 +90,28 @@ namespace RCS.Certificates.Store
                 catch { corrupt.Add(path); }
             }
 
-            for (int i = 0; i < Certificates.Count; i++)
-            {
-                Validate();
-            }
-            foreach (var i in Certificates)
-            {
-                var root = FindMasterCertificate(i.Certificate).Certificate;
-                if (root == null)
-                    i.ValidType = ValidType.NotValid;
-                CertificatesView.Add(i);
-            }
+			for (int i = 0; i < Certificates.Count; i++)
+			{
+				Validate();
+			}
+			foreach (var i in Certificates)
+			{
+				var root = FindMasterCertificate(i.Certificate).Certificate;
+				if (root == null)
+					i.ValidType = ValidType.NotValid;
+				CertificatesView.Add(i);
+			}
+			//foreach (var i in Certificates)
+			//{
+			//	try
+			//	{
+			//		var info = FindMasterCertificate(i.Certificate);
+			//		Console.WriteLine($"{info.Certificate};{info.Status}");
+			//		if (info.Status == StatusSearch.NotFoundParent)
+			//			i.ValidType = CertificateManager.RCSCheckValidCertificate(info.LastParent) == true ? ValidType.Valid : ValidType.NotValid;
+			//	} catch (Exception ex) { Console.WriteLine(ex); }
+			//	CertificatesView.Add(i);
+			//}
             List<StoreItem> remove = new List<StoreItem>();
             foreach (var item in Certificates)
             {
@@ -145,7 +160,7 @@ namespace RCS.Certificates.Store
                      return new SearchCertificateInfo() { Status = StatusSearch.NotValid };
 				return new SearchCertificateInfo() { Status = StatusSearch.Find, Certificate = certificate };
             }
-            var item = GetItem(certificate.Info.MasterUID);
+            var item = GetItemWithoutValidating(certificate.Info.MasterUID);
             if (item == null)
 				return new SearchCertificateInfo() { Status = StatusSearch.NotFoundParent, LastParent = last_parent == null ? certificate : last_parent };
 			var cert = item.Certificate;

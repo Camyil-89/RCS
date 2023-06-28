@@ -81,6 +81,7 @@ namespace RCS.Net.Tcp
 					}
 					Connection.Abort();
 					CallbackClientStatusEvent?.Invoke(ConnectStatus.Disconnect);
+					Connection = null;
 				});
 				Console.WriteLine($"[CLIENT] Connect");
 				return true;
@@ -103,6 +104,7 @@ namespace RCS.Net.Tcp
 				Client.Dispose();
 				CallbackClientStatusEvent?.Invoke(ConnectStatus.Disconnect);
 				Connection.Abort();
+				Connection = null;
 			}
 			Client = null;
 		}

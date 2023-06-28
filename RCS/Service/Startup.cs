@@ -73,7 +73,7 @@ namespace RCS.Service
 		public static void MainWindow_Loaded(object sender, System.Windows.RoutedEventArgs e)
 		{
 			Log.WriteLine($"Startup.MainWindow_Loaded", LogLevel.Warning);
-			Settings.Instance.CertificateStore.Load();
+			CertificateManager.Store.Load();
 		}
 	}
 }

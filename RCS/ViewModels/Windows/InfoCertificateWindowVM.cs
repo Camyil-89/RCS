@@ -14,6 +14,7 @@ using System.IO;
 using Microsoft.Win32;
 using RCS.Service.UI.Selector;
 using RCS.Service.UI.Client;
+using RCS.Certificates;
 
 namespace RCS.ViewModels.Windows
 {
@@ -90,11 +91,11 @@ namespace RCS.ViewModels.Windows
 
 			try
 			{
-				Settings.Instance.CertificateStore.Load();
-				var info = Settings.Instance.CertificateStore.FindMasterCertificate(certificate);
+				CertificateManager.Store.Load();
+				var info = CertificateManager.Store.FindMasterCertificate(certificate);
 				if (info.Status == Certificates.Store.StatusSearch.NotFoundParent)
 				{
-					if (MessageBoxHelper.QuestionShow("Запросить информацию о родительских сертификатах у ЦС?") == MessageBoxResult.Yes)
+					if (ClientManager.CenterCertificationsPageVM.EnableDisconnectButton)
 					{
 						if (ClientManager.CheckValidCertificate(info.LastParent))
 						{
@@ -151,8 +152,8 @@ namespace RCS.ViewModels.Windows
 		{
 			try
 			{
-				var root = Settings.Instance.CertificateStore.GetItem(Certificate.Info.MasterUID);
-				if (root == null && MessageBoxHelper.QuestionShow("Попытаться найти родителя у ЦС?") == MessageBoxResult.Yes)
+				var root = CertificateManager.Store.GetItem(Certificate.Info.MasterUID);
+				if (root == null && ClientManager.CenterCertificationsPageVM.EnableDisconnectButton == true)
 				{
 					Service.UI.WindowManager.ShowInfoAboutCertificate(ClientManager.RequestCertificate(Certificate.Info.MasterUID));
 				}

@@ -149,8 +149,8 @@ namespace RCS.ViewModels.Pages.Main
 				try
 				{
 					SelectedCertificate = Certificates.CertificateManager.RCSLoadCertificateSecret(dialog.FileName);
-					Settings.Instance.CertificateStore.Load();
-					var root = Settings.Instance.CertificateStore.FindMasterCertificate(SelectedCertificate.Certificate).Certificate;
+					CertificateManager.Store.Load();
+					var root = CertificateManager.Store.FindMasterCertificate(SelectedCertificate.Certificate).Certificate;
 
 					if (root == null)
 					{
@@ -226,7 +226,7 @@ namespace RCS.ViewModels.Pages.Main
 			}
 			InfoSertificate = new CertificateInfo();
 			SelectedCertificate = null;
-			Settings.Instance.CertificateStore.Load();
+			CertificateManager.Store.Load();
 			UpdateViewAttribute();
 		}
 		#endregion

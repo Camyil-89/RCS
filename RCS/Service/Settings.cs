@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using RCS.Certificates;
 using RCS.Certificates.Store;
 using RCS.Models;
 using System;
@@ -17,12 +18,7 @@ namespace RCS.Service
 
 
 
-		#region CertificateStore: Description
-		/// <summary>Description</summary>
-		private CertificateStore _CertificateStore = new CertificateStore();
-		/// <summary>Description</summary>
-		public CertificateStore CertificateStore { get => _CertificateStore; set => Set(ref _CertificateStore, value); }
-		#endregion
+		public CertificateStore CertificateStore => CertificateManager.Store;
 
 		#region Parametrs: Description
 		/// <summary>Description</summary>

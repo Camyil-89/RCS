@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Windows;
 using System.Runtime.ConstrainedExecution;
 using RCS.Certificates;
+using RCS.Service.UI.Client;
 
 namespace RCS.ViewModels.Pages.Main
 {
@@ -62,17 +63,32 @@ namespace RCS.ViewModels.Pages.Main
 					var cert = Certificates.CertificateManager.RCSLoadCertificate(dialog.FileName);
 					if (cert.Info.DateDead < DateTime.Now)
 					{
-						MessageBoxHelper.WarningShow("Данный сертификат не действителен!");
+						MessageBoxHelper.WarningShow("Данный сертификат не действителен! Истекло время!");
 						return;
 					}
-					Settings.Instance.CertificateStore.Load();
-					var root = Settings.Instance.CertificateStore.FindMasterCertificate(cert).Certificate;
-					if (root == null)
+					if (CertificateManager.RCSValidatingCertificate(cert))
+					{
+						MessageBoxHelper.InfoShow($"Сертификат действителен!");
+					}
+					else
 					{
 						MessageBoxHelper.WarningShow("Данный сертификат не действителен!");
-						return;
 					}
-					MessageBoxHelper.InfoShow($"Сертификат действителен!");
+					//var cert = Certificates.CertificateManager.RCSLoadCertificate(dialog.FileName);
+					//if (cert.Info.DateDead < DateTime.Now)
+					//{
+					//	MessageBoxHelper.WarningShow("Данный сертификат не действителен!");
+					//	return;
+					//}
+					//CertificateManager.Store.Load();
+					//var root = CertificateManager.Store.FindMasterCertificate(cert).Certificate;
+					//if (root == null && ClientManager.CenterCertificationsPageVM.EnableDisconnectButton == true)
+					//{
+					//	if (ClientManager.CheckValidCertificate(cert))
+					//	MessageBoxHelper.WarningShow("Данный сертификат не действителен!");
+					//	return;
+					//}
+					//MessageBoxHelper.InfoShow($"Сертификат действителен!");
 				}
 				catch (Exception ex) { MessageBoxHelper.WarningShow($"Не удалось загрузить сертификат!\n\n{dialog.FileName}"); }
 			}
@@ -95,7 +111,7 @@ namespace RCS.ViewModels.Pages.Main
 
 				if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
 				{
-					Settings.Instance.CertificateStore.Load();
+					CertificateManager.Store.Load();
 					WindowManager.ShowInfoAboutCertificate(Certificates.CertificateManager.RCSLoadCertificateFromZip(dialog.FileName));
 				}
 
@@ -118,7 +134,7 @@ namespace RCS.ViewModels.Pages.Main
 				dialog.Multiselect = false;
 				if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
 				{
-					Settings.Instance.CertificateStore.Load();
+					CertificateManager.Store.Load();
 					var info = Certificates.CertificateManager.RCSCheckSignFile(dialog.FileName);
 					if (info.Status == SignStatus.Valid)
 					{
@@ -174,7 +190,7 @@ namespace RCS.ViewModels.Pages.Main
 		private bool CanMoreInfoCommandExecute(object e) => true;
 		private void OnMoreInfoCommandExecuted(object e)
 		{
-			Settings.Instance.CertificateStore.Load();
+			CertificateManager.Store.Load();
 			Service.UI.WindowManager.ShowInfoAboutCertificate(SelectedCertificate.Certificate);
 		}
 		#endregion
@@ -197,8 +213,8 @@ namespace RCS.ViewModels.Pages.Main
 				try
 				{
 					SelectedCertificate = Certificates.CertificateManager.RCSLoadCertificateSecret(dialog.FileName);
-					Settings.Instance.CertificateStore.Load();
-					var root = Settings.Instance.CertificateStore.FindMasterCertificate(SelectedCertificate.Certificate).Certificate;
+					CertificateManager.Store.Load();
+					var root = CertificateManager.Store.FindMasterCertificate(SelectedCertificate.Certificate).Certificate;
 
 					if (root == null)
 					{
@@ -228,7 +244,7 @@ namespace RCS.ViewModels.Pages.Main
 			dialog.Filters.Add(filter);
 			if (dialog.ShowDialog() == CommonFileDialogResult.Ok && dialog.FileName.EndsWith("сертификат"))
 			{
-				Settings.Instance.CertificateStore.Load();
+				CertificateManager.Store.Load();
 				try
 				{
 					var cert = Certificates.CertificateManager.RCSLoadCertificate(dialog.FileName);

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using RCS.Base.Command;
+using RCS.Certificates;
 using RCS.Service;
 using RCS.Service.UI;
 using RCS.ViewModels.Windows;
@@ -34,7 +35,7 @@ namespace RCS.ViewModels.Pages.Main
 		private bool CanUpdateTrustedCommandExecute(object e) => true;
 		private void OnUpdateTrustedCommandExecuted(object e)
 		{
-			Service.Settings.Instance.CertificateStore.Load();
+			CertificateManager.Store.Load();
 		}
 		#endregion
 
@@ -57,7 +58,7 @@ namespace RCS.ViewModels.Pages.Main
 				}
 				if (string.IsNullOrEmpty(info) == false)
 				{
-					Service.Settings.Instance.CertificateStore.Load();
+					CertificateManager.Store.Load();
 					MessageBoxHelper.InfoShow($"Получены сертификаты:\n{info.TrimEnd()}");
 				}
 				else

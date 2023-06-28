@@ -1,4 +1,5 @@
 ﻿using RCS.Certificates;
+using RCS.Net.Packets;
 using RCS.Service;
 using System;
 using System.Collections.Generic;
@@ -33,6 +34,7 @@ namespace RCS.Certificates
 	public static class CertificateManager
 	{
 		public static Certificates.Store.CertificateStore Store = new Certificates.Store.CertificateStore();
+		public static Net.Tcp.RCSTCPClient RCSTCPClient = new Net.Tcp.RCSTCPClient();
 		public static CertificateSecret RCSCreateCertificate(CreateSettingsCertificate settings)
 		{
 			if (settings.MasterCertificate == null)
@@ -85,6 +87,36 @@ namespace RCS.Certificates
 			XmlProvider.WriteInZip(path, XmlProvider.NameFileCertificateSignInZip, sign);
 			XmlProvider.SaveInzip(path, XmlProvider.NameFileCertificateInZip, cert);
 			return signInfo;
+		}
+		public static bool RCSCheckValidCertificate(Certificates.Certificate certificate)
+		{
+			if (RCSTCPClient.Connection == null)
+				return false;
+			Packet packet = new Packet();
+			packet.Type = PacketType.ValidatingCertificate;
+			packet.Data = certificate.Raw();
+			return (bool)CertificateManager.RCSTCPClient.Connection.SendAndWait(packet).Data;
+		}
+		public static bool RCSValidatingCertificate(Certificate certificate)
+		{
+
+			var info_valid = Store.FindMasterCertificate(certificate);
+				
+			if (info_valid.Status == Certificates.Store.StatusSearch.Find)
+				return true;
+			else if (info_valid.Status == Certificates.Store.StatusSearch.TimeDead ||
+					info_valid.Status == Certificates.Store.StatusSearch.NotValid ||
+					info_valid.Status == Certificates.Store.StatusSearch.ParentTimeDead)
+				return false;
+			else if (info_valid.Status == Certificates.Store.StatusSearch.NotFoundParent && RCSTCPClient.Connection != null)
+			{
+				Console.WriteLine(info_valid.Status);
+				Packet packet = new Packet();
+				packet.Type = PacketType.ValidatingCertificate;
+				packet.Data = info_valid.LastParent.Raw();
+				return (bool)RCSTCPClient.Connection.SendAndWait(packet).Data;
+			}
+			return false;
 		}
 		public static Certificates.Certificate RCSLoadCertificateFromZip(string path)
 		{
