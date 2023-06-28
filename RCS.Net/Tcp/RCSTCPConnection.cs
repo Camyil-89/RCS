@@ -72,21 +72,6 @@ namespace RCS.Net.Tcp
 			if (packet.Type == PacketType.ValidatingCertificate)
 				Console.WriteLine($"TX - {packet.UID};{packet.Type}; {DateTime.Now}.{DateTime.Now.Millisecond}");
 			await WriteStream(raw);
-			//_Packets.Add(packet);
-			//if (BlockTX)
-			//	return;
-			//try
-			//{
-			//	do
-			//	{
-			//		byte[] raw;
-			//		raw = _Packets.First().Raw(PublicKey);
-			//		Console.WriteLine($"TX: {_Packets.First().UID};{_Packets.First().Type} {DateTime.Now}.{DateTime.Now.Millisecond}");
-			//		WriteStream(raw);
-			//		_Packets.RemoveAt(0);
-			//	} while (_Packets.Count > 0 && BlockTX == false);
-			//}
-			//catch (Exception ex) { Console.WriteLine(ex); }
 		}
 		public void Start(bool RSA_initial)
 		{

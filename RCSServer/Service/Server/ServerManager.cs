@@ -49,12 +49,9 @@ namespace RCSServer.Service.Server
 			}
 			else if (packet.Type == RCS.Net.Packets.PacketType.ValidatingCertificate)
 			{
-				try
-				{
-					var cert = new Certificate().FromRaw((string)packet.Data);
-					packet.Data = Settings.Instance.CertificatesStore.FindMasterCertificate(cert).Certificate != null;
-					packet.Answer(packet);
-				} catch (Exception ex) { Console.WriteLine(ex); }
+				var cert = new Certificate().FromRaw((string)packet.Data);
+				packet.Data = Settings.Instance.CertificatesStore.FindMasterCertificate(cert).Certificate != null;
+				packet.Answer(packet);
 			}
 			else if (packet.Type == RCS.Net.Packets.PacketType.RequestCertificate)
 			{
