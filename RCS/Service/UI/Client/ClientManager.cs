@@ -27,12 +27,12 @@ namespace RCS.Service.UI.Client
 			Task.Run(AutoConnect);
 			Task.Run(() =>
 			{
-				//if (CertificateManager.RCSTCPClient.Connect(Settings.Instance.Parametrs.Client.Address, Settings.Instance.Parametrs.Client.Port))
-				//{
-				//	CertificateManager.RCSTCPClient.Connection.CallbackReceiveEvent += Connection_CallbackReceiveEvent;
-				//	CertificateManager.RCSTCPClient.Connection.CallbackUpdateKeysEvent += Connection_CallbackUpdateKeysEvent;
-				//	LastUpdateKeys = DateTime.Now;
-				//}
+				if (CertificateManager.RCSTCPClient.Connect(Settings.Instance.Parametrs.Client.Address, Settings.Instance.Parametrs.Client.Port))
+				{
+					CertificateManager.RCSTCPClient.Connection.CallbackReceiveEvent += Connection_CallbackReceiveEvent;
+					CertificateManager.RCSTCPClient.Connection.CallbackUpdateKeysEvent += Connection_CallbackUpdateKeysEvent;
+					LastUpdateKeys = DateTime.Now;
+				}
 			});
 		}
 		public static void AutoConnect()
