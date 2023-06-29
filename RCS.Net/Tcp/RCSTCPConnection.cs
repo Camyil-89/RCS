@@ -97,6 +97,7 @@ namespace RCS.Net.Tcp
 		public DateTime Time { get; set; } = DateTime.Now;
 		public int Timeout { get; set; }
 		public BasePacket Packet { get; set; } = null;
+		public Stopwatch Stopwatch { get; set; } = Stopwatch.StartNew();
 	}
 	public class RCSTCPConnection
 	{
@@ -110,7 +111,7 @@ namespace RCS.Net.Tcp
 		private SemaphoreSlim semaphoreSlim1 = new SemaphoreSlim(1, 1);
 		private bool BlockTX = false;
 		private int BufferSize { get; set; } = 1024 * 512; // 1kb
-		public int TimeoutWaitPacket { get; set; } = 5000;
+		public int TimeoutWaitPacket { get; set; } = 60000;
 
 		public byte[] Buffer;
 		public ConnectionStatistics Statistics = new ConnectionStatistics();
@@ -135,7 +136,7 @@ namespace RCS.Net.Tcp
 			raw = packet.Raw(PublicKey);
 			await WriteStream(raw);
 			if (packet.Type == PacketType.ValidatingCertificate)
-				Console.WriteLine($"TX - {packet.UID};{packet.Type}; {DateTime.Now}.{DateTime.Now.Millisecond}");
+				Console.WriteLine($"TX ({raw.Length}) - {packet.UID};{packet.Type}; {DateTime.Now}.{DateTime.Now.Millisecond}");
 		}
 		public void Start(bool RSA_initial)
 		{
@@ -150,17 +151,18 @@ namespace RCS.Net.Tcp
 			thread.Start();
 			if (RSA_initial)
 			{
-				UpdateKeys();
+				UpdateKeys(false);
 			}
 		}
-		public void UpdateKeys()
+		public void UpdateKeys(bool delay = true)
 		{
 			Console.WriteLine($"[CONNECTION] UpdateKeys");
 			try
 			{
 				BlockRX = true;
 				BlockTX = true;
-				Thread.Sleep(NetworkStream.ReadTimeout + 100);
+				if (delay)
+					Thread.Sleep(NetworkStream.ReadTimeout + 100);
 				var rsa = new RSACryptoServiceProvider(2048); //384, 512, 1024, 2048, 4096.
 				Packet packet = new Packet();
 				packet.Data = new SRSAParametrs(rsa.ExportParameters(false)) { SizeKey = 2048 };
@@ -251,7 +253,13 @@ namespace RCS.Net.Tcp
 						}
 						else if (WaitPackets.ContainsKey(packet.UID))
 						{
-							WaitPackets[packet.UID].Packet = packet;
+							if (packet.Type == PacketType.RSTStopwatch)
+							{
+								Console.WriteLine($"[RST] {packet.Type};{packet.UID}");
+								WaitPackets[packet.UID].Stopwatch.Restart();
+							}
+							else
+								WaitPackets[packet.UID].Packet = packet;
 						}
 						else
 						{
@@ -310,13 +318,14 @@ namespace RCS.Net.Tcp
 					totalBytesRead += bytesRead;
 					ms.Write(Buffer, 0, bytesRead);
 					Statistics.RXBytes += bytesRead;
-					//Console.WriteLine($"<{bytesRead}\\{packetLength} {DateTime.Now}.{DateTime.Now.Millisecond}");
+					//Console.WriteLine($"<{ms.Length}\\{packetLength} {DateTime.Now}.{DateTime.Now.Millisecond}");
 				}
 				if (totalBytesRead < packetLength)
 				{
 					Console.WriteLine($"ERROR READ");
 					return null;
 				}
+				//Console.WriteLine($"<{ms.Length}\\{packetLength} {DateTime.Now}.{DateTime.Now.Millisecond}");
 				return ms.ToArray();
 			}
 		}
@@ -329,12 +338,13 @@ namespace RCS.Net.Tcp
 		}
 		public BasePacket SendAndWait(BasePacket packet)
 		{
-			WaitPackets.Add(packet.UID, new WaitInfoPacket() { Timeout = TimeoutWaitPacket });
+			var wait_info_packet = new WaitInfoPacket() { Timeout = TimeoutWaitPacket };
+			WaitPackets.Add(packet.UID, wait_info_packet);
 			Send(packet);
 			try
 			{
 				Stopwatch stopwatch = Stopwatch.StartNew();
-				while (stopwatch.ElapsedMilliseconds < TimeoutWaitPacket)
+				while (wait_info_packet.Stopwatch.ElapsedMilliseconds < TimeoutWaitPacket)
 				{
 					if (WaitPackets[packet.UID].Packet != null)
 					{

@@ -50,13 +50,17 @@ namespace RCSServer.Service.Server
 			}
 			else if (packet.Type == RCS.Net.Packets.PacketType.ValidatingCertificate)
 			{
-				Console.WriteLine("ASDASDAS");
+				packet.Type = RCS.Net.Packets.PacketType.RSTStopwatch;
+				packet.Answer(packet);
 				try
 				{
 					var cert = (Certificate)packet.Data;
 					packet.Data = Settings.Instance.CertificatesStore.FindMasterCertificate(cert).Certificate != null;
 					packet.Answer(packet);
-				} catch (Exception ex) { Console.WriteLine(ex); }
+					packet.Type = RCS.Net.Packets.PacketType.ValidatingCertificate;
+					packet.Answer(packet);
+				}
+				catch (Exception ex) { Console.WriteLine(ex); }
 				Console.WriteLine("ASDASDAS");
 			}
 			else if (packet.Type == RCS.Net.Packets.PacketType.RequestCertificate)

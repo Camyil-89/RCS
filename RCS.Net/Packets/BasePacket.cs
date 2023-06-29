@@ -26,6 +26,7 @@ namespace RCS.Net.Packets
 		SignCertificate,
 		RSAGetKeys,
 		RSAConfirm,
+		RSTStopwatch,
 	}
 	[Serializable]
 	public abstract class BasePacket
@@ -66,6 +67,8 @@ namespace RCS.Net.Packets
 		public virtual void Answer(BasePacket packet)
 		{
 			packet.UID = UID;
+			if (packet.Type == PacketType.RSTStopwatch)
+				packet.Data = null;
 			CallbackAnswerEvent?.Invoke(packet);
 		}
 
