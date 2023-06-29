@@ -16,6 +16,70 @@ using System.Threading.Tasks;
 
 namespace RCS.Net.Tcp
 {
+	public class ConnectionStatistics : Base.ViewModel.BaseViewModel
+	{
+
+		#region TXBytes: Description
+		/// <summary>Description</summary>
+		private long _TXBytes;
+		/// <summary>Description</summary>
+		public long TXBytes
+		{
+			get => _TXBytes; set
+			{
+				Set(ref _TXBytes, value);
+				TXBytesScale = RoundByte(TXBytes);
+			}
+		}
+		#endregion
+
+		#region RXBytes: Description
+		/// <summary>Description</summary>
+		private long _RXBytes;
+		/// <summary>Description</summary>
+		public long RXBytes
+		{
+			get => _RXBytes; set
+			{
+				Set(ref _RXBytes, value);
+				RXBytesScale = RoundByte(RXBytes);
+			}
+		}
+		#endregion
+
+
+		#region TimeConnect: Description
+		/// <summary>Description</summary>
+		private DateTime _TimeConnect = DateTime.Now;
+		/// <summary>Description</summary>
+		public DateTime TimeConnect { get => _TimeConnect; set => Set(ref _TimeConnect, value); }
+		#endregion
+
+
+		#region TXBytesScale: Description
+		/// <summary>Description</summary>
+		private string _TXBytesScale;
+		/// <summary>Description</summary>
+		public string TXBytesScale { get => _TXBytesScale; set => Set(ref _TXBytesScale, value); }
+		#endregion
+
+
+		#region RXBytesScale: Description
+		/// <summary>Description</summary>
+		private string _RXBytesScale;
+		/// <summary>Description</summary>
+		public string RXBytesScale { get => _RXBytesScale; set => Set(ref _RXBytesScale, value); }
+		#endregion
+
+		public static string RoundByte(long Bytes)
+		{
+			if (Bytes < Math.Pow(1024, 1)) return $"{Bytes} Б";
+			else if (Bytes < Math.Pow(1024, 2)) return $"{Math.Round((float)Bytes / 1024, 2)} Кбайт";
+			else if (Bytes < Math.Pow(1024, 3)) return $"{Math.Round((float)Bytes / Math.Pow(1024, 2), 2)} Мбайт";
+			else if (Bytes < Math.Pow(1024, 4)) return $"{Math.Round((float)Bytes / Math.Pow(1024, 3), 2)} Гбайт";
+			return "";
+		}
+	}
 	public class ExceptionTimeout : Exception
 	{
 		public ExceptionTimeout(string message)
@@ -45,11 +109,11 @@ namespace RCS.Net.Tcp
 		private object _lock1 = new object();
 		private SemaphoreSlim semaphoreSlim1 = new SemaphoreSlim(1, 1);
 		private bool BlockTX = false;
-		private int BufferSize { get; set; } = 1024 * 32; // 1kb
+		private int BufferSize { get; set; } = 1024 * 512; // 1kb
 		public int TimeoutWaitPacket { get; set; } = 5000;
 
 		public byte[] Buffer;
-
+		public ConnectionStatistics Statistics = new ConnectionStatistics();
 		public delegate void CallbackReceive(BasePacket packet);
 		public event CallbackReceive CallbackReceiveEvent;
 
@@ -67,11 +131,11 @@ namespace RCS.Net.Tcp
 		}
 		public async Task Send(BasePacket packet)
 		{
-			byte[] raw;
+			byte[] raw = new byte[0];
 			raw = packet.Raw(PublicKey);
+			await WriteStream(raw);
 			if (packet.Type == PacketType.ValidatingCertificate)
 				Console.WriteLine($"TX - {packet.UID};{packet.Type}; {DateTime.Now}.{DateTime.Now.Millisecond}");
-			await WriteStream(raw);
 		}
 		public void Start(bool RSA_initial)
 		{
@@ -129,6 +193,7 @@ namespace RCS.Net.Tcp
 
 				await NetworkStream.WriteAsync(result);
 				NetworkStream.Flush();
+				Statistics.TXBytes += result.LongLength;
 			}
 			catch (Exception ex) { Console.WriteLine(ex); }
 			finally
@@ -231,6 +296,7 @@ namespace RCS.Net.Tcp
 
 			if (bytesRead < headerSize)
 			{
+				Console.WriteLine($"[BAD HEAD]");
 				return null;
 			}
 			int packetLength = BitConverter.ToInt32(headerBuffer, 0);
@@ -243,6 +309,7 @@ namespace RCS.Net.Tcp
 					bytesRead = await NetworkStream.ReadAsync(Buffer, 0, Buffer.Length).ConfigureAwait(false);
 					totalBytesRead += bytesRead;
 					ms.Write(Buffer, 0, bytesRead);
+					Statistics.RXBytes += bytesRead;
 					//Console.WriteLine($"<{bytesRead}\\{packetLength} {DateTime.Now}.{DateTime.Now.Millisecond}");
 				}
 				if (totalBytesRead < packetLength)

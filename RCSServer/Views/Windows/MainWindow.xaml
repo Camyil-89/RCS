@@ -12,6 +12,23 @@
         WindowStartupLocation="CenterScreen"
         DataContext="{Binding MainVM, Source={StaticResource Locator}}">
     <Grid>
-		<TextBlock Text="{Binding Test}"/>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="170"/>
+			<ColumnDefinition/>
+		</Grid.ColumnDefinitions>
+		<StackPanel Orientation="Vertical"
+                    Grid.Column="0"
+                    Background="#FFF0F0F0">
+			<StackPanel Orientation="Vertical">
+				<Button Content="Клиенты"
+						Style="{StaticResource LeftMenu}"
+						Tag="{Binding TagSelectClients}"
+						Command="{Binding SelectPageCommand}"
+						CommandParameter="{Binding ClientsPage ,Source={StaticResource Locator}}"/>
+			</StackPanel>
+		</StackPanel>
+		<Grid Grid.Column="1">
+			<Frame NavigationUIVisibility="Hidden" Content="{Binding SelectedPage}"/>
+		</Grid>
 	</Grid>
 </Window>

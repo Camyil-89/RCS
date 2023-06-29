@@ -7,29 +7,50 @@
 		<Setter Property="FontSize" Value="14"/>
 	</Style>
 	<Style TargetType="Button" BasedOn="{StaticResource BaseButton}" x:Key="LeftMenu">
-		<Setter Property="Width" Value="150"/>
+		<Setter Property="Width" Value="170"/>
 		<Setter Property="Height" Value="35"/>
+		<Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Border Background="{TemplateBinding Background}" BorderBrush="Black" BorderThickness="0">
+                        <Grid>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="Tag" Value="focus">
+                <Setter Property="Background">
+                    <Setter.Value>
+                        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                            <GradientStop Color="#FF91C1E7" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+	<Style x:Key="HyperLinkButton" TargetType="{x:Type Hyperlink}">
+		<Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+		<Setter Property="Foreground" Value="Black" />
+		<Setter Property="TextBlock.TextDecorations" Value="{x:Null}" />
 		<Style.Triggers>
-			<Trigger Property="Tag" Value="focus">
-				<Setter Property="Opacity" Value="0.7"/>
+			<Trigger Property="IsMouseOver" Value="True">
+				<Setter Property="Foreground" Value="DarkGray" />
+			</Trigger>
+			<Trigger Property="IsMouseDirectlyOver" Value="True">
+				<Setter Property="Foreground" Value="Gray"/>
 			</Trigger>
 		</Style.Triggers>
-		<!--<Setter Property="Template">
-			<Setter.Value>
-				<ControlTemplate TargetType="{x:Type Button}">
-					<Border Background="{TemplateBinding Background}" BorderBrush="Black" BorderThickness="1">
-						<Grid>
-							<Image Source="..\Assets\flag.png" Stretch="Fill" Name="flagImage"/>
-							<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-						</Grid>
-					</Border>
-					<ControlTemplate.Triggers>
-						<Trigger Property="IsMouseOver" Value="True">
-							<Setter TargetName="flagImage" Property="Opacity" Value="0.2"/>
-						</Trigger>
-					</ControlTemplate.Triggers>
-				</ControlTemplate>
-			</Setter.Value>
-		</Setter>-->
+	</Style>
+	<Style x:Key="NavigationHyperLink" BasedOn="{StaticResource HyperLinkButton}" TargetType="{x:Type Hyperlink}">
+		<Style.Triggers>
+			<Trigger Property="Tag" Value="focus">
+				<Setter Property="Foreground" Value="LightGray"/>
+			</Trigger>
+		</Style.Triggers>
 	</Style>
 </ResourceDictionary>

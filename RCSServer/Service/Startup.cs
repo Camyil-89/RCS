@@ -1,8 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using RCS.Certificates;
 using RCS.Net.Packets;
+using RCS.Net.Tcp;
 using RCS.Service;
 using RCSServer.Models;
+using RCSServer.Service.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +12,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Input;
 
 namespace RCSServer.Service
@@ -17,12 +20,13 @@ namespace RCSServer.Service
 	public static class Startup
 	{
 		private static bool IsInit = false;
+		private static object _lock = new object();
 		public static void Init()
 		{
 			if (IsInit)
 				return;
 			IsInit = true;
-
+			BindingOperations.EnableCollectionSynchronization(Settings.Instance.Clients, _lock);
 
 			Log.WriteLine($"Startup.Init", LogLevel.Warning);
 			App.Current.MainWindow.Loaded += Service.Startup.MainWindow_Loaded;
@@ -45,13 +49,9 @@ namespace RCSServer.Service
 			NavigationCommands.Search.InputGestures.Clear();
 			NavigationCommands.Zoom.InputGestures.Clear();
 
-			Server.ServerManager.Connect();
-			//RCS.Net.Tcp.RCSTCPClient client = new RCS.Net.Tcp.RCSTCPClient();
-			//client.Connect(IPAddress.Parse("127.0.0.1"), 1991);
-			//client.Send(new Ping());
+			Server.ServerManager.Start();
 
-
-			//Navigate.SelectMenu(App.Host.Services.GetRequiredService<CreateCertificatePage>());
+			Navigate.SelectPage(App.Host.Services.GetRequiredService<Views.Pages.ClientsPage>());
 			RCSServer.Service.Settings.Instance.CertificatesStore.PathStore = XmlProvider.PathToTrustedCertificates;
 		}
 

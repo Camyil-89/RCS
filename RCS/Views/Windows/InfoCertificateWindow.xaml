@@ -8,7 +8,7 @@
 		xmlns:CUIS="clr-namespace:RCS.Service.UI.Selector"
 	  xmlns:CUI="clr-namespace:RCS.Service.UI"
         mc:Ignorable="d"
-        Title="Русский стандарт сертификации | просмотр сертификата"
+        Title="Российский стандарт сертификации | просмотр сертификата"
 		Height="600"
 		Width="400"
 		ResizeMode="CanMinimize"

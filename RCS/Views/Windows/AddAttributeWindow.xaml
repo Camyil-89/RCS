@@ -7,7 +7,7 @@
         xmlns:vm="clr-namespace:RCS.ViewModels.Windows"
         xmlns:CUI="clr-namespace:RCS.Service.UI"
         mc:Ignorable="d"
-        Title="Русский стандарт сертификации | добавление"
+        Title="Российский стандарт сертификации | добавление"
         Height="300" Width="400"
         d:Height="1000"
         ResizeMode="CanMinimize"

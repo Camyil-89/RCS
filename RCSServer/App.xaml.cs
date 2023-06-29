@@ -38,6 +38,8 @@ namespace RCSServer
 		public static void ConfigureServices(HostBuilderContext builder, IServiceCollection services)
 		{
 			services.AddSingleton<ViewModels.Windows.MainVM>();
+			services.AddSingleton<ViewModels.Pages.ClientsPageVM>();
+			services.AddSingleton<Views.Pages.ClientsPage>();
 			services.AddSingleton<RCSServer.Service.Settings>();
 		}
 	}

@@ -90,13 +90,6 @@ namespace RCS.Service.UI.Client
 				CenterCertificationsPageVM.LastUpdateKeysText = $"";
 			}
 		}
-		public static bool CheckValidCertificate(Certificates.Certificate certificate)
-		{
-			Packet packet = new Packet();
-			packet.Type = PacketType.ValidatingCertificate;
-			packet.Data = certificate.Raw();
-			return (bool)CertificateManager.RCSTCPClient.Connection.SendAndWait(packet).Data;
-		}
 		public static Certificates.Certificate RequestCertificate(Guid guid)
 		{
 			Packet packet = new Packet();
@@ -108,13 +101,8 @@ namespace RCS.Service.UI.Client
 		{
 			Packet packet = new Packet();
 			packet.Type = PacketType.RequestCertificates;
-			var certs = CertificateManager.RCSTCPClient.Connection.SendAndWait(packet).Data;
-			List<Certificate> certificates = new List<Certificate>();
-			foreach (var i in (string[])certs)
-			{
-				certificates.Add(new Certificate().FromRaw(i));
-			}
-			return certificates.ToArray();
+			var certs = (Certificate[])CertificateManager.RCSTCPClient.Connection.SendAndWait(packet).Data;
+			return certs;
 		}
 		public static void Disconnect()
 		{

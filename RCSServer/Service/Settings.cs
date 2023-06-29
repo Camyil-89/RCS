@@ -16,6 +16,13 @@ namespace RCSServer.Service
 		public static Settings Instance => App.Host.Services.GetRequiredService<Settings>();
 
 
+		#region Clients: Description
+		/// <summary>Description</summary>
+		private ObservableCollection<RCS.Net.Tcp.RCSClient> _Clients = new ObservableCollection<RCS.Net.Tcp.RCSClient>();
+		/// <summary>Description</summary>
+		public ObservableCollection<RCS.Net.Tcp.RCSClient> Clients { get => _Clients; set => Set(ref _Clients, value); }
+		#endregion
+
 		#region CErtificatesStore: Description
 		/// <summary>Description</summary>
 		private CertificateStore _CertificatesStore = new CertificateStore();

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RCS"
         mc:Ignorable="d"
-        Title="Русский стандарт сертификации"
+        Title="Российский стандарт сертификации"
 		Height="450"
 		Width="820"
 		MinWidth="800"

@@ -94,7 +94,7 @@ namespace RCS.Certificates
 				return false;
 			Packet packet = new Packet();
 			packet.Type = PacketType.ValidatingCertificate;
-			packet.Data = certificate.Raw();
+			packet.Data = new Certificate().FromRaw(certificate.Raw());
 			return (bool)CertificateManager.RCSTCPClient.Connection.SendAndWait(packet).Data;
 		}
 		public static bool RCSValidatingCertificate(Certificate certificate)
@@ -113,7 +113,7 @@ namespace RCS.Certificates
 				Console.WriteLine(info_valid.Status);
 				Packet packet = new Packet();
 				packet.Type = PacketType.ValidatingCertificate;
-				packet.Data = info_valid.LastParent.Raw();
+				packet.Data = info_valid.LastParent;
 				return (bool)RCSTCPClient.Connection.SendAndWait(packet).Data;
 			}
 			return false;

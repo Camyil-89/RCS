@@ -203,7 +203,7 @@ namespace RCS.ViewModels.Pages.Main
 			SaveFileDialog dialog = new SaveFileDialog();
 			dialog.Title = "Выберите место сохранения";
 			dialog.Filter = "Файлы .ссертификат|*.ссертификат";
-			dialog.FileName = "Сертификат";
+			dialog.FileName = InfoSertificate.Name;
 			dialog.DefaultExt = ".ссертификат";
 
 			if (SelectedCertificate == null && SelfSign == false)

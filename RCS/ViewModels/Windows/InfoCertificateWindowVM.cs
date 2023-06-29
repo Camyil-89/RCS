@@ -97,7 +97,7 @@ namespace RCS.ViewModels.Windows
 				{
 					if (ClientManager.CenterCertificationsPageVM.EnableDisconnectButton)
 					{
-						if (ClientManager.CheckValidCertificate(info.LastParent))
+						if (CertificateManager.RCSCheckValidCertificate(info.LastParent))
 						{
 							StatusCertificate = "Доверенный";
 							IsTrusted = "1";
