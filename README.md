@@ -35,10 +35,12 @@
 ![image](https://github.com/Camyil-89/RCS/assets/76705837/55720969-64c2-493c-b21a-0b161229b5f1)
 
 ## РСС
-![image](https://github.com/Camyil-89/RCS/assets/76705837/636f861e-ac7c-4924-9db9-3a236f09aaf8)
+![image](https://github.com/Camyil-89/RCS/assets/76705837/fc1d8d61-a7f5-4afb-a6b8-0d18e825e129)
 
 ![image](https://github.com/Camyil-89/RCS/assets/76705837/a7b619fe-a27f-461d-a68f-51e7ff7d9689)
 
-![image](https://github.com/Camyil-89/RCS/assets/76705837/25084b83-e5d5-4c0e-9dd1-9550fee3a6e2)
+![image](https://github.com/Camyil-89/RCS/assets/76705837/f84903b5-add6-478c-845b-92e084f778b9)
 
-![image](https://github.com/Camyil-89/RCS/assets/76705837/5c98ba73-919d-467a-bdb3-a2a6d985b2ad)
+![image](https://github.com/Camyil-89/RCS/assets/76705837/262a9b49-418c-493a-a4b0-c1cba954b7aa)
+
+![image](https://github.com/Camyil-89/RCS/assets/76705837/08644edb-b264-4149-b235-29aba807b773)
