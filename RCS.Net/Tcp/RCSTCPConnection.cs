@@ -99,6 +99,11 @@ namespace RCS.Net.Tcp
 		public BasePacket Packet { get; set; } = null;
 		public Stopwatch Stopwatch { get; set; } = Stopwatch.StartNew();
 	}
+	public enum ModeConnection : byte
+	{
+		RequestAnswer = 1,
+		Unlimited = 2,
+	}
 	public class RCSTCPConnection
 	{
 		private NetworkStream NetworkStream { get; set; }
@@ -111,8 +116,9 @@ namespace RCS.Net.Tcp
 		private SemaphoreSlim semaphoreSlim1 = new SemaphoreSlim(1, 1);
 		private bool BlockTX = false;
 		private int BufferSize { get; set; } = 1024 * 512; // 1kb
-		public int TimeoutWaitPacket { get; set; } = 60000;
+		public int TimeoutWaitPacket { get; set; } = 10_000;
 
+		public ModeConnection Mode { get; set; } = ModeConnection.Unlimited;
 		public byte[] Buffer;
 		public ConnectionStatistics Statistics = new ConnectionStatistics();
 		public delegate void CallbackReceive(BasePacket packet);
@@ -313,11 +319,19 @@ namespace RCS.Net.Tcp
 			{
 				while (totalBytesRead < packetLength)
 				{
-					//Console.WriteLine($">{bytesRead}\\{packetLength} {DateTime.Now}.{DateTime.Now.Millisecond}");
-					bytesRead = await NetworkStream.ReadAsync(Buffer, 0, Buffer.Length).ConfigureAwait(false);
+					var buffer_size = Buffer.Length <= packetLength - totalBytesRead ? Buffer.Length: packetLength - totalBytesRead;
+					//Console.WriteLine($">{bytesRead}\\{packetLength} {buffer_size} {DateTime.Now}.{DateTime.Now.Millisecond}");
+					bytesRead = await NetworkStream.ReadAsync(Buffer, 0, buffer_size).ConfigureAwait(false);
 					totalBytesRead += bytesRead;
 					ms.Write(Buffer, 0, bytesRead);
 					Statistics.RXBytes += bytesRead;
+					if (Mode == ModeConnection.RequestAnswer)
+					{
+						foreach (var i in WaitPackets)
+						{
+							i.Value.Stopwatch.Restart();
+						}
+					}
 					//Console.WriteLine($"<{ms.Length}\\{packetLength} {DateTime.Now}.{DateTime.Now.Millisecond}");
 				}
 				if (totalBytesRead < packetLength)
@@ -326,6 +340,9 @@ namespace RCS.Net.Tcp
 					return null;
 				}
 				//Console.WriteLine($"<{ms.Length}\\{packetLength} {DateTime.Now}.{DateTime.Now.Millisecond}");
+				//byte[] data = new byte[packetLength];
+				//ms.Position = 0;
+				//ms.Read(data,0, packetLength);
 				return ms.ToArray();
 			}
 		}

@@ -27,6 +27,7 @@ namespace RCS.Net.Packets
 		RSAGetKeys,
 		RSAConfirm,
 		RSTStopwatch,
+		Disconnect,
 	}
 	[Serializable]
 	public abstract class BasePacket

@@ -13,6 +13,18 @@ using System.Threading.Tasks;
 
 namespace RCS.Net.Tcp
 {
+	public class ExceptionNotConnect : Exception
+	{
+		public ExceptionNotConnect(string message = "dont connected to RCS server")
+		: base(message)
+		{
+		}
+
+		public ExceptionNotConnect(string message, Exception inner)
+			: base(message, inner)
+		{
+		}
+	}
 	public enum ConnectStatus : byte
 	{
 		Disconnect = 0,
@@ -23,7 +35,6 @@ namespace RCS.Net.Tcp
 	{
 		public TcpClient Client { get; private set; }
 		public RCSTCPConnection Connection { get; private set; }
-		public int BufferSize { get; private set; } = 1024; // 1 kb
 
 		public int TimeoutUpdateKeys { get; set; } = 10; // seconds
 
@@ -32,6 +43,8 @@ namespace RCS.Net.Tcp
 		public delegate void CallbackClientStatus(ConnectStatus connect);
 		public event CallbackClientStatus CallbackClientStatusEvent;
 
+		private string Address { get; set; } = "";
+		private int Port { get; set; } = -1;
 		public bool Connect(string address, int socket)
 		{
 			Disconnect();
@@ -39,6 +52,8 @@ namespace RCS.Net.Tcp
 			CallbackClientStatusEvent?.Invoke(ConnectStatus.Connecting);
 			try
 			{
+				Address = address;
+				Port = socket;
 				Client.Connect(address, socket);
 				Connection = new RCSTCPConnection(Client.GetStream());
 				Connection.CallbackReceiveEvent += Connection_CallbackReceiveEvent;
@@ -98,6 +113,7 @@ namespace RCS.Net.Tcp
 
 		public void Disconnect()
 		{
+
 			if (Client != null && Client.Connected)
 			{
 				Client.Close();
@@ -107,10 +123,42 @@ namespace RCS.Net.Tcp
 				Connection = null;
 			}
 			Client = null;
+			Port = -1;
 		}
 		public void Send(BasePacket packet)
 		{
 			Connection.Send(packet);
 		}
+		private TcpClient GetNewTCPClient()
+		{
+			if (Port == -1)
+				throw new ExceptionNotConnect();
+			var client = new TcpClient();
+			client.Connect(Address, Port);
+			return client;
+		}
+		//public BasePacket SendAndWait(BasePacket packet)
+		//{
+		//	var client = GetNewTCPClient();
+		//	RCSTCPConnection connection = null;
+		//	BasePacket answer = null;
+		//	try
+		//	{
+		//		connection = new RCSTCPConnection(client.GetStream());
+		//		connection.Mode = ModeConnection.RequestAnswer;
+		//		connection.CallbackReceiveEvent += Connection_CallbackReceiveEvent;
+		//		connection.Start(true);
+		//
+		//		answer = connection.SendAndWait(packet);
+		//		connection.SendAndWait(new Packet() { Type = PacketType.Disconnect });
+		//	} catch (Exception ex) { Console.WriteLine(ex); }
+		//	finally
+		//	{
+		//		connection.Abort();
+		//		client.Close();
+		//		client.Dispose();
+		//	}
+		//	return answer;
+		//}
 	}
 }

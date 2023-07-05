@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.ConstrainedExecution;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RCSServer.Service.Server
@@ -41,7 +42,7 @@ namespace RCSServer.Service.Server
 			if (packet.Type == RCS.Net.Packets.PacketType.RequestCertificates)
 			{
 				List<Certificate> certificates = new List<Certificate>();
-				foreach (var i in Settings.Instance.CertificatesStore.Certificates)
+				foreach (var i in RCS.Certificates.CertificateManager.Store.Certificates)
 				{
 					certificates.Add(i.Certificate);
 				}
@@ -50,22 +51,22 @@ namespace RCSServer.Service.Server
 			}
 			else if (packet.Type == RCS.Net.Packets.PacketType.ValidatingCertificate)
 			{
-				packet.Type = RCS.Net.Packets.PacketType.RSTStopwatch;
-				packet.Answer(packet);
 				try
 				{
 					var cert = (Certificate)packet.Data;
-					packet.Data = Settings.Instance.CertificatesStore.FindMasterCertificate(cert).Certificate != null;
+					packet.Type = RCS.Net.Packets.PacketType.RSTStopwatch;
+					packet.Answer(packet);
+					var info = RCS.Certificates.CertificateManager.Store.FindMasterCertificate(cert);
 					packet.Answer(packet);
 					packet.Type = RCS.Net.Packets.PacketType.ValidatingCertificate;
+					packet.Data = info.Certificate != null;
 					packet.Answer(packet);
 				}
 				catch (Exception ex) { Console.WriteLine(ex); }
-				Console.WriteLine("ASDASDAS");
 			}
 			else if (packet.Type == RCS.Net.Packets.PacketType.RequestCertificate)
 			{
-				packet.Data = Settings.Instance.CertificatesStore.GetItem((Guid)packet.Data).Certificate;
+				packet.Data = RCS.Certificates.CertificateManager.Store.GetItem((Guid)packet.Data).Certificate;
 				packet.Answer(packet);
 			}
 		}

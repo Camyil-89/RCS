@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Printing;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -47,6 +48,17 @@ namespace RCS.Net.Tcp
 		/// <summary>Description</summary>
 		public double Ping { get => _Ping; set => Set(ref _Ping, value); }
 		#endregion
+
+		public void CallbackReceiveEvent(Packets.BasePacket packet)
+		{
+			if (packet.Type == PacketType.Disconnect)
+			{
+				packet.Answer(packet);
+				Connection.Abort();
+				Client.Close();
+				Client.Dispose();
+			}
+		}
 	}
 	public class RCSTCPListener
 	{
@@ -90,6 +102,7 @@ namespace RCS.Net.Tcp
 
 			RCSTCPConnection connection = new RCSTCPConnection(Client.GetStream());
 			connection.CallbackReceiveEvent += Connection_CallbackReceiveEvent;
+			connection.CallbackReceiveEvent += rcs_client.CallbackReceiveEvent;
 			connection.Statistics = rcs_client.Statistics;
 			connection.Start(false);
 

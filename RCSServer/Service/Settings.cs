@@ -23,13 +23,6 @@ namespace RCSServer.Service
 		public ObservableCollection<RCS.Net.Tcp.RCSClient> Clients { get => _Clients; set => Set(ref _Clients, value); }
 		#endregion
 
-		#region CErtificatesStore: Description
-		/// <summary>Description</summary>
-		private CertificateStore _CertificatesStore = new CertificateStore();
-		/// <summary>Description</summary>
-		public CertificateStore CertificatesStore { get => _CertificatesStore; set => Set(ref _CertificatesStore, value); }
-		#endregion
-
 		#region Parametrs: Description
 		/// <summary>Description</summary>
 		private SettingsParametrs _Parametrs = new SettingsParametrs();

@@ -52,7 +52,8 @@ namespace RCSServer.Service
 			Server.ServerManager.Start();
 
 			Navigate.SelectPage(App.Host.Services.GetRequiredService<Views.Pages.ClientsPage>());
-			RCSServer.Service.Settings.Instance.CertificatesStore.PathStore = XmlProvider.PathToTrustedCertificates;
+
+			RCS.Certificates.CertificateManager.Store.PathStore = XmlProvider.PathToTrustedCertificates;
 		}
 
 		private static void MainWindow_Closed(object? sender, EventArgs e)
@@ -71,7 +72,7 @@ namespace RCSServer.Service
 		public static void MainWindow_Loaded(object sender, System.Windows.RoutedEventArgs e)
 		{
 			Log.WriteLine($"Startup.MainWindow_Loaded", LogLevel.Warning);
-			RCSServer.Service.Settings.Instance.CertificatesStore.Load();
+			RCS.Certificates.CertificateManager.Store.Load();
 		}
 	}
 }
