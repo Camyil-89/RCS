@@ -21,6 +21,7 @@ namespace RCS.Service.UI.Client
 		{
 			CertificateManager.RCSTCPClient = new Net.Tcp.RCSTCPClient();
 			CertificateManager.RCSTCPClient.CallbackClientStatusEvent += Client_CallbackClientStatusEvent;
+			CertificateManager.RCSTCPClient.PublicKey = Settings.Instance.Certificate.Info.PublicKey;
 			CenterCertificationsPageVM.EnableDisconnectButton = false;
 			CenterCertificationsPageVM.EnableConnectButton = false;
 			CertificateManager.RCSTCPClient.TimeoutUpdateKeys = Settings.Instance.Parametrs.Client.TimeoutUpdateKeys;

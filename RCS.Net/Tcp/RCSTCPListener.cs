@@ -1,4 +1,6 @@
-﻿using RCS.Net.Packets;
+﻿using OpenGost.Security.Cryptography;
+using RCS.Net.Firewall;
+using RCS.Net.Packets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace RCS.Net.Tcp
 {
-	public class RCSClient: Base.ViewModel.BaseViewModel
+	public class RCSClient : Base.ViewModel.BaseViewModel
 	{
 
 		#region Statistics: Description
@@ -38,7 +40,7 @@ namespace RCS.Net.Tcp
 		/// <summary>Description</summary>
 		private EndPoint _EndPoint;
 		/// <summary>Description</summary>
-		public EndPoint  EndPoint { get => _EndPoint; set => Set(ref _EndPoint, value); }
+		public EndPoint EndPoint { get => _EndPoint; set => Set(ref _EndPoint, value); }
 		#endregion
 
 
@@ -62,8 +64,11 @@ namespace RCS.Net.Tcp
 	}
 	public class RCSTCPListener
 	{
+		private IFirewall Firewall { get; set; } = new SvarogFirewall();
+
 		public TcpListener TcpListener { get; private set; }
 		public List<TcpClient> Clients = new List<TcpClient>();
+		public byte[] PrivateKey { get; set; } = new byte[16];
 
 		public delegate void CallbackReceive(BasePacket packet);
 		public event CallbackReceive CallbackReceiveEvent;
@@ -75,6 +80,7 @@ namespace RCS.Net.Tcp
 		public event CallbackDisconnectClient CallbackDisconnectClientEvent;
 		public void Start(int socket)
 		{
+			OpenGostCryptoConfig.ConfigureCryptographicServices();
 			TcpListener = new TcpListener(IPAddress.Any, socket);
 			TcpListener.Start();
 			Task.Run(Listener);
@@ -88,10 +94,17 @@ namespace RCS.Net.Tcp
 				try
 				{
 					var client = TcpListener.AcceptTcpClient();
+					if (Firewall.ValidateConnect(client) == false)
+					{
+						Console.WriteLine($"[SERVER FIREWALL] ValidateConnect: {client.Client.RemoteEndPoint}");
+						client.Close();
+						client.Dispose();
+						continue;
+					}
 					Clients.Add(client);
+
 					Thread thread = new Thread(() => { HandlerClient(client); });
 					thread.Start();
-
 				}
 				catch (Exception e) { }
 			}
@@ -100,18 +113,17 @@ namespace RCS.Net.Tcp
 		{
 			var rcs_client = new RCSClient();
 
-			RCSTCPConnection connection = new RCSTCPConnection(Client.GetStream());
+			RCSTCPConnection connection = new RCSTCPConnection(Client.GetStream(), null, PrivateKey, Firewall);
 			connection.CallbackReceiveEvent += Connection_CallbackReceiveEvent;
 			connection.CallbackReceiveEvent += rcs_client.CallbackReceiveEvent;
 			connection.Statistics = rcs_client.Statistics;
-			connection.Start(false);
+			connection.Start();
 
 			rcs_client.Client = Client;
 			rcs_client.EndPoint = Client.Client.RemoteEndPoint;
 			rcs_client.Connection = connection;
 			CallbackConnectClientEvent?.Invoke(rcs_client);
-			
-			while (Client != null && Client.Connected && Client.Client.Connected)
+			while (Client != null && Client.Connected && Client.Client.Connected && connection.NetworkStream != null)
 			{
 				try
 				{
@@ -119,8 +131,7 @@ namespace RCS.Net.Tcp
 					var packet = connection.SendAndWait(new Ping());
 					if (packet.Type == PacketType.Ping)
 					{
-						rcs_client.Ping = (DateTime.Now - ((Ping)packet).Time).TotalMilliseconds;
-						Console.WriteLine($"[SERVER {Clients.Count}] ping: {rcs_client.Ping}");
+						rcs_client.Ping = Math.Round((DateTime.Now - ((Ping)packet).Time).TotalMilliseconds, 2);
 					}
 				}
 				catch { }

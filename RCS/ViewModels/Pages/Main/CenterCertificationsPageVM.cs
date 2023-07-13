@@ -1,4 +1,6 @@
-﻿using RCS.Base.Command;
+﻿using Microsoft.WindowsAPICodePack.Dialogs;
+using RCS.Base.Command;
+using RCS.Certificates;
 using RCS.Service;
 using RCS.Service.UI;
 using System;
@@ -18,9 +20,43 @@ namespace RCS.ViewModels.Pages.Main
 		{
 			#region Commands
 			#endregion
+			Service.UI.Navigate.CallbackOpenMenuEvent += Navigate_CallbackOpenMenuEvent;
+		}
+
+		private void Navigate_CallbackOpenMenuEvent(System.Windows.Controls.Page page)
+		{
+			UpdateValue();
+		}
+		private void UpdateValue()
+		{
+			if (Settings.Certificate != null)
+			{
+				SelectedCertificate = Settings.Certificate.Info.Name;
+				EnableViewCert = true;
+			}
+			else
+			{
+				SelectedCertificate = "Не выбран!";
+				EnableViewCert = false;
+			}
 		}
 
 		#region Parametrs
+
+
+		#region EnableViewCert: Description
+		/// <summary>Description</summary>
+		private bool _EnableViewCert = false;
+		/// <summary>Description</summary>
+		public bool EnableViewCert { get => _EnableViewCert; set => Set(ref _EnableViewCert, value); }
+		#endregion
+
+		#region SelectedCertificate: Description
+		/// <summary>Description</summary>
+		private string _SelectedCertificate;
+		/// <summary>Description</summary>
+		public string SelectedCertificate { get => _SelectedCertificate; set => Set(ref _SelectedCertificate, value); }
+		#endregion
 		public Settings Settings => Settings.Instance;
 		#region VisibilityConnectionMenu: Description
 		/// <summary>Description</summary>
@@ -154,6 +190,58 @@ namespace RCS.ViewModels.Pages.Main
 		private void OnOpenMenuCertificateCommandExecuted(object e)
 		{
 			VisibilityMenuCertificate = VisibilityMenuCertificate == Visibility.Collapsed ? Visibility.Visible: Visibility.Collapsed;
+		}
+		#endregion
+
+
+		#region SelectCertificateCommand: Description
+		private ICommand _SelectCertificateCommand;
+		public ICommand SelectCertificateCommand => _SelectCertificateCommand ??= new LambdaCommand(OnSelectCertificateCommandExecuted, CanSelectCertificateCommandExecute);
+		private bool CanSelectCertificateCommandExecute(object e) => true;
+		private void OnSelectCertificateCommandExecuted(object e)
+		{
+			CommonOpenFileDialog dialog = new CommonOpenFileDialog();
+			dialog.IsFolderPicker = false;
+			dialog.InitialDirectory = XmlProvider.PathToTrustedCertificates;
+			dialog.Multiselect = false;
+
+			CommonFileDialogFilter filter = new CommonFileDialogFilter("Файлы сертификатов", "*.сертификат");
+			dialog.Filters.Add(filter);
+			if (dialog.ShowDialog() == CommonFileDialogResult.Ok && dialog.FileName.EndsWith("сертификат"))
+			{
+				try
+				{
+					var cert = Certificates.CertificateManager.RCSLoadCertificate(dialog.FileName);
+					if (cert.Info.DateDead < DateTime.Now)
+					{
+						MessageBoxHelper.WarningShow("Данный сертификат не действителен! Истекло время!");
+						UpdateValue();
+						return;
+					}
+					if (CertificateManager.RCSValidatingCertificate(cert))
+					{
+						Settings.Instance.Parametrs.PathToCertificate = dialog.FileName;
+						Settings.Instance.Certificate = cert;
+						MessageBoxHelper.InfoShow($"Сертификат действителен!");
+					}
+					else
+					{
+						MessageBoxHelper.WarningShow("Данный сертификат не действителен!");
+					}
+					UpdateValue();
+				}
+				catch (Exception ex) { MessageBoxHelper.WarningShow($"Не удалось загрузить сертификат!\n\n{dialog.FileName}"); }
+			}
+		}
+		#endregion
+
+		#region ViewCertificateCommand: Description
+		private ICommand _ViewCertificateCommand;
+		public ICommand ViewCertificateCommand => _ViewCertificateCommand ??= new LambdaCommand(OnViewCertificateCommandExecuted, CanViewCertificateCommandExecute);
+		private bool CanViewCertificateCommandExecute(object e) => true;
+		private void OnViewCertificateCommandExecuted(object e)
+		{
+			Service.UI.WindowManager.ShowInfoAboutCertificate(Settings.Instance.Certificate);
 		}
 		#endregion
 

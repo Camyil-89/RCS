@@ -17,6 +17,13 @@ namespace RCS.Service
 
 
 
+		#region Certificate: Description
+		/// <summary>Description</summary>
+		private Certificate _Certificate;
+		/// <summary>Description</summary>
+		public Certificate Certificate { get => _Certificate; set => Set(ref _Certificate, value); }
+		#endregion
+
 
 		public CertificateStore CertificateStore => CertificateManager.Store;
 

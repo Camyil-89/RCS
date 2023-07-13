@@ -49,8 +49,6 @@ namespace RCSServer.Service
 			NavigationCommands.Search.InputGestures.Clear();
 			NavigationCommands.Zoom.InputGestures.Clear();
 
-			Server.ServerManager.Start();
-
 			Navigate.SelectPage(App.Host.Services.GetRequiredService<Views.Pages.ClientsPage>());
 
 			RCS.Certificates.CertificateManager.Store.PathStore = XmlProvider.PathToTrustedCertificates;
@@ -73,6 +71,12 @@ namespace RCSServer.Service
 		{
 			Log.WriteLine($"Startup.MainWindow_Loaded", LogLevel.Warning);
 			RCS.Certificates.CertificateManager.Store.Load();
+			try
+			{
+				RCSServer.Service.Settings.Instance.Cerificate = CertificateManager.RCSLoadCertificateSecret(Settings.Instance.Parametrs.PathToCertificate);
+			}
+			catch { }
+			Server.ServerManager.Start();
 		}
 	}
 }

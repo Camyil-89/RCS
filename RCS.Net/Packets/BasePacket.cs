@@ -24,11 +24,69 @@ namespace RCS.Net.Packets
 		ValidatingCertificate,
 		RequestSignCertificate,
 		SignCertificate,
-		RSAGetKeys,
-		RSAConfirm,
+		InitialConnect,
+		ConfirmConnect,
 		RSTStopwatch,
 		Disconnect,
+		FirewallBLock,
 	}
+	[Serializable]
+	public class RCSMagma
+	{
+		public byte[] KEY;
+		public byte[] IV;
+
+		public RCSMagma()
+		{
+			Generate();
+		}
+		public void Generate()
+		{
+			var magma = OpenGost.Security.Cryptography.Magma.Create();
+			magma.GenerateIV();
+			magma.GenerateKey();
+			KEY = magma.Key;
+			IV = magma.IV;
+		}
+		public OpenGost.Security.Cryptography.Magma GetMagma()
+		{
+			var magma = OpenGost.Security.Cryptography.Magma.Create();
+			magma.IV = IV;
+			magma.Key = KEY;
+
+			return magma;
+		}
+		public byte[] Encrypt(byte[] data)
+		{
+			var magma = GetMagma();	
+
+			using (var encryptor = magma.CreateEncryptor())
+			{
+				return PerformCryptography(data, encryptor);
+			}
+		}
+		private byte[] PerformCryptography(byte[] data, ICryptoTransform cryptoTransform)
+		{
+			using (var ms = new MemoryStream())
+			using (var cryptoStream = new CryptoStream(ms, cryptoTransform, CryptoStreamMode.Write))
+			{
+				cryptoStream.Write(data, 0, data.Length);
+				cryptoStream.FlushFinalBlock();
+
+				return ms.ToArray();
+			}
+		}
+		public byte[] Decrypt(byte[] data)
+		{
+			var magma = GetMagma();
+
+			using (var decryptor = magma.CreateDecryptor(magma.Key, magma.IV))
+			{
+				return PerformCryptography(data, decryptor);
+			}
+		}
+	}
+
 	[Serializable]
 	public abstract class BasePacket
 	{
@@ -68,17 +126,34 @@ namespace RCS.Net.Packets
 		public virtual void Answer(BasePacket packet)
 		{
 			packet.UID = UID;
-			if (packet.Type == PacketType.RSTStopwatch)
+			if (packet.Type == PacketType.RSTStopwatch ||
+				packet.Type == PacketType.FirewallBLock)
 				packet.Data = null;
 			CallbackAnswerEvent?.Invoke(packet);
 		}
 
-		public virtual byte[] Raw(RSAParameters publicKey)
+		public virtual byte[] Raw(RCSMagma magma)
 		{
-			if (IsKeyEmpty(publicKey))
+			using (MemoryStream memoryStream = new MemoryStream())
 			{
-				return Raw();
+				BinaryFormatter formatter = new BinaryFormatter();
+				formatter.Serialize(memoryStream, this);
+				var data = memoryStream.ToArray();
+				return magma.Encrypt(data);
 			}
+		}
+
+		public virtual BasePacket FromRaw(byte[] array, RCSMagma magma)
+		{
+			var data = magma.Decrypt(array);
+			using (MemoryStream memoryStream = new MemoryStream(data))
+			{
+				BinaryFormatter formatter = new BinaryFormatter();
+				return (BasePacket)formatter.Deserialize(memoryStream);
+			}
+		}
+		public virtual byte[] Raw(byte[] publicKey)
+		{
 			using (MemoryStream memoryStream = new MemoryStream())
 			{
 				BinaryFormatter formatter = new BinaryFormatter();
@@ -88,12 +163,8 @@ namespace RCS.Net.Packets
 			}
 		}
 
-		public virtual BasePacket FromRaw(byte[] array, RSAParameters privateKey)
+		public virtual BasePacket FromRaw(byte[] array, byte[] privateKey)
 		{
-			if (IsKeyEmpty(privateKey))
-			{
-				return FromRaw(array);
-			}
 			var data = DecryptWithRSA(array, privateKey);
 			using (MemoryStream memoryStream = new MemoryStream(data))
 			{
@@ -101,15 +172,15 @@ namespace RCS.Net.Packets
 				return (BasePacket)formatter.Deserialize(memoryStream);
 			}
 		}
-		public static bool IsKeyEmpty(RSAParameters key)
+		public static bool IsKeyEmpty(byte[] key)
 		{
-			return key.Equals(new RSAParameters());
+			return key == null || key.Length == 0;
 		}
-		private byte[] EncryptWithRSA(byte[] data, RSAParameters publicKey)
+		private byte[] EncryptWithRSA(byte[] data, byte[] publicKey)
 		{
 			using (var rsa = new RSACryptoServiceProvider())
 			{
-				rsa.ImportParameters(publicKey);
+				rsa.ImportRSAPublicKey(publicKey, out _);
 				// Генерируем симметричный ключ AES
 				using (var aes = Aes.Create())
 				{
@@ -130,11 +201,11 @@ namespace RCS.Net.Packets
 			}
 		}
 
-		private byte[] DecryptWithRSA(byte[] encryptedData, RSAParameters privateKey)
+		private byte[] DecryptWithRSA(byte[] encryptedData, byte[] privateKey)
 		{
 			using (var rsa = new RSACryptoServiceProvider())
 			{
-				rsa.ImportParameters(privateKey);
+				rsa.ImportRSAPrivateKey(privateKey, out _);
 
 				// Разделяем зашифрованный ключ и зашифрованные данные
 				byte[] encryptedKey = new byte[rsa.KeySize / 8];

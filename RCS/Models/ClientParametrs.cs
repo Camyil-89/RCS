@@ -48,5 +48,6 @@ namespace RCS.Models
 		/// <summary>Description</summary>
 		public bool AutoStartClient { get => _AutoStartClient; set => Set(ref _AutoStartClient, value); }
 		#endregion
+
 	}
 }

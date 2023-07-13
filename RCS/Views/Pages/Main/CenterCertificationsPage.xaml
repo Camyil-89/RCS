@@ -136,6 +136,32 @@
 								<CheckBox Grid.Column="1"
 										  IsChecked="{Binding Settings.Parametrs.Client.AutoStartClient}"/>
 							</Grid>
+							<Grid Margin="0 0 0 5">
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="280"/>
+									<ColumnDefinition/>
+								</Grid.ColumnDefinitions>
+								<StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+									<TextBlock Text="Сертификат: "/>
+									<CUI:ToolTipTextBlock Text="{Binding SelectedCertificate}"
+													  ToolTip="{Binding SelectedCertificate}"
+													  Grid.Column="1"/>
+								</StackPanel>
+								<UniformGrid Columns="2" Grid.Column="1">
+									<Button FontSize="14"
+											Margin="0 0 6 0"
+											Command="{Binding SelectCertificateCommand}"
+											Content="Выбрать"/>
+									<Button FontSize="14"
+											Command="{Binding ViewCertificateCommand}"
+											IsEnabled="{Binding EnableViewCert}">
+										<CUI:ToolTipTextBlock
+														Text="Просмотреть"
+													  ToolTip="Просмотреть"
+													  Grid.Column="1"/>
+									</Button>
+								</UniformGrid>
+							</Grid>
 							<Border BorderThickness="1"
 									BorderBrush="Black"
 									Opacity="0.2"

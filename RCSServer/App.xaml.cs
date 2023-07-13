@@ -39,7 +39,10 @@ namespace RCSServer
 		{
 			services.AddSingleton<ViewModels.Windows.MainVM>();
 			services.AddSingleton<ViewModels.Pages.ClientsPageVM>();
+			services.AddSingleton<ViewModels.Pages.SettingsPageVM>();
+
 			services.AddSingleton<Views.Pages.ClientsPage>();
+			services.AddSingleton<Views.Pages.SettingsPage>();
 			services.AddSingleton<RCSServer.Service.Settings>();
 		}
 	}

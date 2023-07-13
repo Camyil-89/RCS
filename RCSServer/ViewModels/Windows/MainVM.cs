@@ -1,4 +1,5 @@
 ﻿using RCSServer.Base.Command;
+using RCSServer.Service.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,6 +28,14 @@ namespace RCSServer.ViewModels.Windows
 		public string TagSelectClients { get => _TagSelectClients; set => Set(ref _TagSelectClients, value); }
 		#endregion
 
+
+		#region TagSelectSettings: Description
+		/// <summary>Description</summary>
+		private string _TagSelectSettings;
+		/// <summary>Description</summary>
+		public string TagSelectSettings { get => _TagSelectSettings; set => Set(ref _TagSelectSettings, value); }
+		#endregion
+
 		#region SelectedPage: Description
 		/// <summary>Description</summary>
 		private Page _SelectedPage;
@@ -43,7 +52,7 @@ namespace RCSServer.ViewModels.Windows
 		private bool CanSelectPageCommandExecute(object e) => true;
 		private void OnSelectPageCommandExecuted(object e)
 		{
-
+			Navigate.SelectPage(e as Page);
 		}
 		#endregion
 		#endregion

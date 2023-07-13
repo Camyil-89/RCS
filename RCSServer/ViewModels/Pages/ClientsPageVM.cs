@@ -21,6 +21,7 @@ namespace RCSServer.ViewModels.Pages
 		#endregion
 
 		#region Commands
+
 		#endregion
 
 		#region Functions

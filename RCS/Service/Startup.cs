@@ -53,8 +53,6 @@ namespace RCS.Service
 
 			Navigate.SelectMenu(App.Host.Services.GetRequiredService<CreateCertificatePage>());
 
-			if (Settings.Instance.Parametrs.Client.AutoStartClient)
-				ClientManager.Connect();
 			//var cert = XmlProvider.Load<Certificate>("C:\\Users\\zhuko\\Documents\\RCS\\Сертификат.сертификат");
 			//Console.WriteLine(cert.Info.Raw());
 			//Console.WriteLine($"{cert.LengthKey};{cert.Info.RawByte().Length}");
@@ -74,6 +72,12 @@ namespace RCS.Service
 		{
 			Log.WriteLine($"Startup.MainWindow_Loaded", LogLevel.Warning);
 			CertificateManager.Store.Load();
+			try
+			{
+				Settings.Instance.Certificate = CertificateManager.RCSLoadCertificate(Settings.Instance.Parametrs.PathToCertificate);
+			} catch { }
+			if (Settings.Instance.Parametrs.Client.AutoStartClient)
+				ClientManager.Connect();
 		}
 	}
 }

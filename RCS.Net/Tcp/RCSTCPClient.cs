@@ -1,4 +1,6 @@
-﻿using RCS.Net.Packets;
+﻿using OpenGost.Security.Cryptography;
+using RCS.Net.Firewall;
+using RCS.Net.Packets;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -36,6 +38,7 @@ namespace RCS.Net.Tcp
 		public TcpClient Client { get; private set; }
 		public RCSTCPConnection Connection { get; private set; }
 
+		public byte[] PublicKey { get; set; } = new byte[0];
 		public int TimeoutUpdateKeys { get; set; } = 10; // seconds
 
 		public double Ping { get; private set; } = -1;
@@ -47,6 +50,7 @@ namespace RCS.Net.Tcp
 		private int Port { get; set; } = -1;
 		public bool Connect(string address, int socket)
 		{
+			OpenGostCryptoConfig.ConfigureCryptographicServices();
 			Disconnect();
 			Client = new TcpClient();
 			CallbackClientStatusEvent?.Invoke(ConnectStatus.Connecting);
@@ -55,9 +59,9 @@ namespace RCS.Net.Tcp
 				Address = address;
 				Port = socket;
 				Client.Connect(address, socket);
-				Connection = new RCSTCPConnection(Client.GetStream());
+				Connection = new RCSTCPConnection(Client.GetStream(), PublicKey, null, new EmptyFirewall());
 				Connection.CallbackReceiveEvent += Connection_CallbackReceiveEvent;
-				Connection.Start(true);
+				Connection.Start();
 				CallbackClientStatusEvent?.Invoke(ConnectStatus.Connect);
 				Task.Run(() =>
 				{

@@ -17,4 +17,8 @@
 		<None Remove="Server\**" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <PackageReference Include="OpenGost.Security.Cryptography" Version="0.2.1" />
+	</ItemGroup>
+
 </Project>

@@ -110,7 +110,6 @@ namespace RCS.Certificates
 				return false;
 			else if (info_valid.Status == Certificates.Store.StatusSearch.NotFoundParent && RCSTCPClient.Connection != null)
 			{
-				Console.WriteLine($"[ASDASDASDASDAS] {info_valid.Status}");
 				Packet packet = new Packet();
 				packet.Type = PacketType.ValidatingCertificate;
 				packet.Data = info_valid.LastParent;

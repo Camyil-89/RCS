@@ -4,12 +4,6 @@ using RCS.Service;
 using RCSServer.ViewModels.Windows;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Runtime.ConstrainedExecution;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace RCSServer.Service.Server
 {
@@ -19,12 +13,12 @@ namespace RCSServer.Service.Server
 		private static MainVM MainVM => App.Host.Services.GetRequiredService<MainVM>();
 		public static void Start()
 		{
+			Server.PrivateKey = Settings.Instance.Cerificate.PrivateKey;
 			Server.Start(1991);
 			Server.CallbackReceiveEvent += Server_CallbackReceiveEvent;
-			Server.CallbackConnectClientEvent += Server_CallbackConnectClientEvent; ;
+			Server.CallbackConnectClientEvent += Server_CallbackConnectClientEvent;
 			Server.CallbackDisconnectClientEvent += Server_CallbackDisconnectClientEvent; ;
 		}
-
 		private static void Server_CallbackDisconnectClientEvent(RCS.Net.Tcp.RCSClient client)
 		{
 			Settings.Instance.Clients.Remove(client);

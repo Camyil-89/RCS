@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualBasic;
+using RCS.Net.Firewall;
 using RCS.Net.Packets;
 using System;
 using System.Collections;
@@ -101,24 +102,26 @@ namespace RCS.Net.Tcp
 	}
 	public enum ModeConnection : byte
 	{
-		RequestAnswer = 1,
-		Unlimited = 2,
+		Client = 1,
+		Server = 2,
 	}
 	public class RCSTCPConnection
 	{
-		private NetworkStream NetworkStream { get; set; }
 		private List<Packets.BasePacket> _Packets = new List<Packets.BasePacket>();
 		private Dictionary<Guid, WaitInfoPacket> WaitPackets = new Dictionary<Guid, WaitInfoPacket>();
-		private RSAParameters PrivateKey = new RSAParameters();
-		private RSAParameters PublicKey = new RSAParameters();
+		private byte[] PublicKey;
+		private byte[] PrivateKey;
+		private RCSMagma Magma = new RCSMagma();
 		private bool BlockRX = false;
 		private object _lock1 = new object();
-		private SemaphoreSlim semaphoreSlim1 = new SemaphoreSlim(1, 1);
 		private bool BlockTX = false;
+		private bool InitialConnect = false;
 		private int BufferSize { get; set; } = 1024 * 512; // 1kb
+		private IFirewall Firewall { get; set; }
 		public int TimeoutWaitPacket { get; set; } = 10_000;
+		public NetworkStream NetworkStream { get; set; }
 
-		public ModeConnection Mode { get; set; } = ModeConnection.Unlimited;
+		public ModeConnection Mode { get; set; }
 		public byte[] Buffer;
 		public ConnectionStatistics Statistics = new ConnectionStatistics();
 		public delegate void CallbackReceive(BasePacket packet);
@@ -126,11 +129,18 @@ namespace RCS.Net.Tcp
 
 		public delegate void CallbackUpdateKeys();
 		public event CallbackUpdateKeys CallbackUpdateKeysEvent;
-		public RCSTCPConnection(NetworkStream stream)
+		public RCSTCPConnection(NetworkStream stream, byte[] public_key, byte[] private_key, IFirewall firewall)
 		{
 			NetworkStream = stream;
 			NetworkStream.ReadTimeout = 700;
 			NetworkStream.WriteTimeout = 700;
+			PublicKey = public_key;
+			PrivateKey = private_key;
+			if (PublicKey == null)
+				Mode = ModeConnection.Server;
+			else
+				Mode = ModeConnection.Client;
+			Firewall = firewall;
 		}
 		public void Abort()
 		{
@@ -139,23 +149,23 @@ namespace RCS.Net.Tcp
 		public async Task Send(BasePacket packet)
 		{
 			byte[] raw = new byte[0];
-			raw = packet.Raw(PublicKey);
+			raw = packet.Raw(Magma);
 			await WriteStream(raw);
 			if (packet.Type == PacketType.ValidatingCertificate)
 				Console.WriteLine($"TX ({raw.Length}) - {packet.UID};{packet.Type}; {DateTime.Now}.{DateTime.Now.Millisecond}");
 		}
-		public void Start(bool RSA_initial)
+		public void Start()
 		{
 			Buffer = new byte[BufferSize];
 			BlockTX = true;
-			if (RSA_initial)
+			if (Mode == ModeConnection.Client)
 			{
 				BlockRX = true;
 			}
 			Thread thread = new Thread(() => { RXHandler(); });
 			thread.IsBackground = true;
 			thread.Start();
-			if (RSA_initial)
+			if (Mode == ModeConnection.Client)
 			{
 				UpdateKeys(false);
 			}
@@ -169,20 +179,30 @@ namespace RCS.Net.Tcp
 				BlockTX = true;
 				if (delay)
 					Thread.Sleep(NetworkStream.ReadTimeout + 100);
-				var rsa = new RSACryptoServiceProvider(2048); //384, 512, 1024, 2048, 4096.
-				Packet packet = new Packet();
-				packet.Data = new SRSAParametrs(rsa.ExportParameters(false)) { SizeKey = 2048 };
-				packet.Type = PacketType.RSAGetKeys;
-				WriteStream(packet.Raw(PublicKey)).Wait();
-				var b_packet = WaitPacketReadNetworkStream(PacketType.RSAGetKeys, rsa.ExportParameters(true));
-				PublicKey = ((SRSAParametrs[])b_packet.Data)[0].ToRSAParameters();
-				PrivateKey = ((SRSAParametrs[])b_packet.Data)[1].ToRSAParameters();
-				packet = new Packet() { Type = PacketType.RSAConfirm };
-				WriteStream(packet.Raw(PublicKey)).Wait();
-				WaitPacketReadNetworkStream(PacketType.RSAConfirm, PrivateKey);
+
+				if (InitialConnect == false)
+				{
+					Packet packet = new Packet();
+					packet.Type = PacketType.InitialConnect;
+					packet.Data = Magma;
+					WriteStream(packet.Raw(PublicKey));
+					var answer = new Packet().FromRaw(WaitReadNetworkStream(), Magma);
+
+					InitialConnect = true;
+				}
+				else
+				{
+					var magma = new RCSMagma();
+					Packet packet = new Packet();
+					packet.Type = PacketType.InitialConnect;
+					packet.Data = magma;
+					WriteStream(packet.Raw(Magma));
+					Magma = magma;
+					var answer = new Packet().FromRaw(WaitReadNetworkStream(), Magma);
+				}
+
 				BlockRX = false;
 				BlockTX = false;
-				Console.WriteLine($"[CONNECTION] UpdateKeys CONFIRM");
 				CallbackUpdateKeysEvent?.Invoke();
 			}
 			catch (Exception ex) { Console.WriteLine(ex); throw new Exception(ex.Message); }
@@ -197,23 +217,18 @@ namespace RCS.Net.Tcp
 			data.CopyTo(result, sizeof(int));
 			try
 			{
-				//await semaphoreSlim1.WaitAsync();
-
 				await NetworkStream.WriteAsync(result);
-				NetworkStream.Flush();
+				await NetworkStream.FlushAsync();
 				Statistics.TXBytes += result.LongLength;
 			}
 			catch (Exception ex) { Console.WriteLine(ex); }
-			finally
-			{
-				//semaphoreSlim1.Release();
-			}
 		}
 		private async Task RXHandler()
 		{
 			Console.WriteLine("START [RXHandler]");
 
 			int bytesRead = 0;
+
 			while (NetworkStream != null && NetworkStream.CanWrite && NetworkStream.CanRead)
 			{
 				Packets.BasePacket packet = null;
@@ -223,38 +238,47 @@ namespace RCS.Net.Tcp
 				{
 					await _Read().ContinueWith(async task =>
 					{
-						packet = new Packet().FromRaw(task.Result, PrivateKey);
+						if (Mode == ModeConnection.Server && InitialConnect == false)
+						{
+							try
+							{
+								packet = new Packet().FromRaw(task.Result, PrivateKey);
+							}
+							catch (Exception ex)
+							{
+								Console.WriteLine(ex);
+								Abort();
+							}
+						}
+						else
+							packet = new Packet().FromRaw(task.Result, Magma);
+						if (Firewall.ValidatePacket(packet) == false)
+						{
+							packet.Type = PacketType.FirewallBLock;
+							packet.Answer(packet);
+							Console.WriteLine($"[CONNECTION FIREWALL] ValidatePacket");
+							return;
+						}
 						packet.CallbackAnswerEvent += Packet_CallbackAnswerEvent;
 						if (packet.Type == PacketType.ValidatingCertificate)
 							Console.WriteLine($"RX - {packet.UID};{packet.Type}; {DateTime.Now}.{DateTime.Now.Millisecond}");
-						if (packet.Type == PacketType.RSAGetKeys)
+						if (packet.Type == PacketType.InitialConnect)
 						{
 							BlockTX = true;
 							try
 							{
-								var par = ((SRSAParametrs)packet.Data);
-								RSAParameters rsap = par.ToRSAParameters();
-								Packet packet1 = new Packet();
-								packet1.Type = PacketType.RSAGetKeys;
-								var rsa = new RSACryptoServiceProvider(par.SizeKey);
-								packet1.Data = new SRSAParametrs[2]
-								{
-							new SRSAParametrs(rsa.ExportParameters(false)),
-							new SRSAParametrs(rsa.ExportParameters(true))
-								};
-								await WriteStream(packet1.Raw(rsap));
-
-								PublicKey = rsa.ExportParameters(false);
-								PrivateKey = rsa.ExportParameters(true);
-								Console.WriteLine($"[CONNECTION] CreateKeys");
+								Magma = (RCSMagma)packet.Data;
+								packet.Type = PacketType.ConfirmConnect;
+								packet.Answer(packet);
+								InitialConnect = true;
+								Console.WriteLine($"[CONNECTION] InitialConnect");
 							}
 							catch (Exception ex) { BlockTX = false; Console.WriteLine(ex); }
 
 						}
-						else if (packet.Type == PacketType.RSAConfirm)
+						else if (packet.Type == PacketType.ConfirmConnect)
 						{
-							Console.WriteLine($"[CONNECTION] RSAConfirm");
-							await WriteStream(packet.Raw(PublicKey));
+							Console.WriteLine($"[CONNECTION] ConfirmConnect");
 							BlockTX = false;
 						}
 						else if (WaitPackets.ContainsKey(packet.UID))
@@ -277,7 +301,7 @@ namespace RCS.Net.Tcp
 			}
 			Console.WriteLine("END [RXHandler]");
 		}
-		private BasePacket WaitPacketReadNetworkStream(PacketType type, RSAParameters parameters)
+		private BasePacket WaitPacketReadNetworkStream(PacketType type, byte[] public_key)
 		{
 			while (true)
 			{
@@ -286,7 +310,7 @@ namespace RCS.Net.Tcp
 					var data = ReadNetworkStream();
 					if (data == null)
 						continue;
-					var packet = new Packet().FromRaw(data, parameters);
+					var packet = new Packet().FromRaw(data, public_key);
 					if (packet.Type == type)
 						return packet;
 				}
@@ -313,37 +337,47 @@ namespace RCS.Net.Tcp
 				Console.WriteLine($"[BAD HEAD]");
 				return null;
 			}
+
+
+
 			int packetLength = BitConverter.ToInt32(headerBuffer, 0);
 			int totalBytesRead = 0;
+
+			if (Firewall.ValidateHeader(headerBuffer) == false)
+			{
+				Console.WriteLine($"[CONNECTION FIREWALL] ValidateHeader");
+				// очищаем поток
+				while (totalBytesRead < packetLength)
+				{
+					var buffer_size = Buffer.Length <= packetLength - totalBytesRead ? Buffer.Length : packetLength - totalBytesRead;
+					bytesRead = await NetworkStream.ReadAsync(Buffer, 0, buffer_size).ConfigureAwait(false);
+					totalBytesRead += bytesRead;
+					Statistics.RXBytes += bytesRead;
+				}
+				return null;
+			}
 			using (MemoryStream ms = new MemoryStream())
 			{
 				while (totalBytesRead < packetLength)
 				{
-					var buffer_size = Buffer.Length <= packetLength - totalBytesRead ? Buffer.Length: packetLength - totalBytesRead;
-					//Console.WriteLine($">{bytesRead}\\{packetLength} {buffer_size} {DateTime.Now}.{DateTime.Now.Millisecond}");
+					var buffer_size = Buffer.Length <= packetLength - totalBytesRead ? Buffer.Length : packetLength - totalBytesRead;
 					bytesRead = await NetworkStream.ReadAsync(Buffer, 0, buffer_size).ConfigureAwait(false);
 					totalBytesRead += bytesRead;
 					ms.Write(Buffer, 0, bytesRead);
 					Statistics.RXBytes += bytesRead;
-					if (Mode == ModeConnection.RequestAnswer)
-					{
-						foreach (var i in WaitPackets)
-						{
-							i.Value.Stopwatch.Restart();
-						}
-					}
-					//Console.WriteLine($"<{ms.Length}\\{packetLength} {DateTime.Now}.{DateTime.Now.Millisecond}");
 				}
 				if (totalBytesRead < packetLength)
 				{
 					Console.WriteLine($"ERROR READ");
 					return null;
 				}
-				//Console.WriteLine($"<{ms.Length}\\{packetLength} {DateTime.Now}.{DateTime.Now.Millisecond}");
-				//byte[] data = new byte[packetLength];
-				//ms.Position = 0;
-				//ms.Read(data,0, packetLength);
-				return ms.ToArray();
+				var data = ms.ToArray();
+				if (Firewall.Validate(data))
+				{
+					return data;
+				}
+				Console.WriteLine($"[CONNECTION FIREWALL] ValidateHeader");
+				return null;
 			}
 		}
 		private byte[] ReadNetworkStream()

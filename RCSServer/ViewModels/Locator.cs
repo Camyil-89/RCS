@@ -15,7 +15,9 @@ namespace RCSServer.ViewModels
 		public MainVM MainVM => App.Host.Services.GetRequiredService<MainVM>();
 
 		public RCSServer.ViewModels.Pages.ClientsPageVM ClientsPageVM => App.Host.Services.GetRequiredService<RCSServer.ViewModels.Pages.ClientsPageVM>();
+		public RCSServer.ViewModels.Pages.SettingsPageVM SettingsPageVM => App.Host.Services.GetRequiredService<RCSServer.ViewModels.Pages.SettingsPageVM>();
 
 		public ClientsPage ClientsPage => App.Host.Services.GetRequiredService<ClientsPage>();
+		public SettingsPage SettingsPage => App.Host.Services.GetRequiredService<SettingsPage>();
 	}
 }
