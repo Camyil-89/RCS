@@ -17,6 +17,8 @@ namespace RCS.Service.UI.Client
 		private static DateTime LastUpdateKeys = DateTime.Now;
 		public static CenterCertificationsPageVM CenterCertificationsPageVM => App.Host.Services.GetRequiredService<CenterCertificationsPageVM>();
 		private static bool IsAutoConnect = false;
+		private static bool WaitBlockFirewall = false;
+		private static RCS.Net.Tcp.ConnectStatus LastStatus = Net.Tcp.ConnectStatus.Disconnect;
 		public static void Connect()
 		{
 			CertificateManager.RCSTCPClient = new Net.Tcp.RCSTCPClient();
@@ -24,6 +26,7 @@ namespace RCS.Service.UI.Client
 			CertificateManager.RCSTCPClient.PublicKey = Settings.Instance.Certificate.Info.PublicKey;
 			CenterCertificationsPageVM.EnableDisconnectButton = false;
 			CenterCertificationsPageVM.EnableConnectButton = false;
+			WaitBlockFirewall = true;
 			CertificateManager.RCSTCPClient.TimeoutUpdateKeys = Settings.Instance.Parametrs.Client.TimeoutUpdateKeys;
 			Task.Run(AutoConnect);
 			Task.Run(() =>
@@ -34,6 +37,9 @@ namespace RCS.Service.UI.Client
 					CertificateManager.RCSTCPClient.Connection.CallbackUpdateKeysEvent += Connection_CallbackUpdateKeysEvent;
 					LastUpdateKeys = DateTime.Now;
 				}
+				Thread.Sleep(3000);
+				WaitBlockFirewall = false;
+				Client_CallbackClientStatusEvent(LastStatus);
 			});
 		}
 		public static void AutoConnect()
@@ -55,7 +61,7 @@ namespace RCS.Service.UI.Client
 		}
 		private static void Connection_CallbackUpdateKeysEvent()
 		{
-			LastUpdateKeys = DateTime.Now;	
+			LastUpdateKeys = DateTime.Now;
 		}
 
 		private static void Connection_CallbackReceiveEvent(Net.Packets.BasePacket packet)
@@ -67,6 +73,7 @@ namespace RCS.Service.UI.Client
 
 		private static void Client_CallbackClientStatusEvent(Net.Tcp.ConnectStatus connect)
 		{
+			LastStatus = connect;
 			if (connect == Net.Tcp.ConnectStatus.Connect)
 			{
 				CenterCertificationsPageVM.ClientStatusText = $"ЦС подключен!";
@@ -86,12 +93,13 @@ namespace RCS.Service.UI.Client
 			{
 				CenterCertificationsPageVM.ClientStatusText = $"ЦС не подключен!";
 				CenterCertificationsPageVM.EnableDisconnectButton = false;
-				CenterCertificationsPageVM.EnableConnectButton = true;
+				if (WaitBlockFirewall == false)
+					CenterCertificationsPageVM.EnableConnectButton = true;
 				CenterCertificationsPageVM.PingText = $"";
 				CenterCertificationsPageVM.LastUpdateKeysText = $"";
 			}
 		}
-		
+
 		public static void Disconnect()
 		{
 			CenterCertificationsPageVM.EnableDisconnectButton = false;

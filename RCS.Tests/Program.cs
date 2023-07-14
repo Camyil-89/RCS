@@ -7,7 +7,7 @@ using System.Security.Cryptography;
 
 var cert = CertificateManager.RCSLoadCertificate($@"C:\Users\zhuko\Documents\RCS\RCSSERVER.сертификат");
 
-for (int i = 0; i < 5; i++)
+for (int i = 0; i < 100; i++)
 {
 	Task.Run(() =>
 	{

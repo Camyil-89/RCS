@@ -196,10 +196,10 @@ namespace RCS.Net.Tcp
 					Packet packet = new Packet();
 					packet.Type = PacketType.InitialConnect;
 					packet.Data = Magma;
-					WriteStream(packet.Raw(PublicKey), packet.UID);
-					var answer = new Packet().FromRaw(WaitReadNetworkStream(), Magma);
+					WriteStream(packet.Raw(PublicKey), packet.UID).Wait();
 
 					InitialConnect = true;
+					BlockRX = false;
 				}
 				else
 				{
@@ -207,13 +207,10 @@ namespace RCS.Net.Tcp
 					Packet packet = new Packet();
 					packet.Type = PacketType.InitialConnect;
 					packet.Data = magma;
-					WriteStream(packet.Raw(Magma), packet.UID);
+					WriteStream(packet.Raw(Magma), packet.UID).Wait();
 					Magma = magma;
-					var answer = new Packet().FromRaw(WaitReadNetworkStream(), Magma);
+					BlockRX = false;
 				}
-
-				BlockRX = false;
-				BlockTX = false;
 				CallbackUpdateKeysEvent?.Invoke();
 			}
 			catch (Exception ex) { Console.WriteLine(ex); throw new Exception(ex.Message); }
@@ -297,7 +294,7 @@ namespace RCS.Net.Tcp
 								packet.Type = PacketType.ConfirmConnect;
 								packet.Answer(packet);
 								InitialConnect = true;
-								Console.WriteLine($"[CONNECTION] InitialConnect");
+								//Console.WriteLine($"[CONNECTION] InitialConnect");
 							}
 							catch (Exception ex) { BlockTX = false; Console.WriteLine(ex); }
 
@@ -461,7 +458,7 @@ namespace RCS.Net.Tcp
 		{
 			if (packet.Type == PacketType.ValidatingCertificate)
 				Console.WriteLine($"[CONNECTION] Answer {packet.UID}; {packet.Type} {DateTime.Now}.{DateTime.Now.Millisecond}");
-			Send(packet);
+			Send(packet).Wait();
 		}
 	}
 }

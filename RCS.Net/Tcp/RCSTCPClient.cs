@@ -85,7 +85,7 @@ namespace RCS.Net.Tcp
 								stopwatch_update_keys.Restart();
 							}
 						}
-						catch (TimeoutException)
+						catch (ExceptionTimeout)
 						{
 							count_timeout++;
 							Console.WriteLine($"Timeout error {count_timeout} \\ 5");
@@ -133,36 +133,5 @@ namespace RCS.Net.Tcp
 		{
 			Connection.Send(packet);
 		}
-		private TcpClient GetNewTCPClient()
-		{
-			if (Port == -1)
-				throw new ExceptionNotConnect();
-			var client = new TcpClient();
-			client.Connect(Address, Port);
-			return client;
-		}
-		//public BasePacket SendAndWait(BasePacket packet)
-		//{
-		//	var client = GetNewTCPClient();
-		//	RCSTCPConnection connection = null;
-		//	BasePacket answer = null;
-		//	try
-		//	{
-		//		connection = new RCSTCPConnection(client.GetStream());
-		//		connection.Mode = ModeConnection.RequestAnswer;
-		//		connection.CallbackReceiveEvent += Connection_CallbackReceiveEvent;
-		//		connection.Start(true);
-		//
-		//		answer = connection.SendAndWait(packet);
-		//		connection.SendAndWait(new Packet() { Type = PacketType.Disconnect });
-		//	} catch (Exception ex) { Console.WriteLine(ex); }
-		//	finally
-		//	{
-		//		connection.Abort();
-		//		client.Close();
-		//		client.Dispose();
-		//	}
-		//	return answer;
-		//}
 	}
 }
