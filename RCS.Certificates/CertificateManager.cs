@@ -33,8 +33,9 @@ namespace RCS.Certificates
 	}
 	public static class CertificateManager
 	{
-		public static Certificates.Store.CertificateStore Store = new Certificates.Store.CertificateStore();
-		public static Net.Tcp.RCSTCPClient RCSTCPClient = new Net.Tcp.RCSTCPClient();
+		public static Certificates.Store.CertificateStore Store { get; set; } = new Certificates.Store.CertificateStore();
+		public static Net.Tcp.RCSTCPClient RCSTCPClient { get; set; } = new Net.Tcp.RCSTCPClient();
+		public static ITCPSender TCPSender { get; set; } = null;
 		public static CertificateSecret RCSCreateCertificate(CreateSettingsCertificate settings)
 		{
 			if (settings.MasterCertificate == null)
@@ -66,8 +67,7 @@ namespace RCS.Certificates
 			{
 				cert = XmlProvider.LoadInzip<Certificates.Certificate>(path, XmlProvider.NameFileCertificateInZip);
 				sign = XmlProvider.ReadInZip(path, XmlProvider.NameFileCertificateSignInZip);
-				var root = Store.FindMasterCertificate(cert).Certificate;
-				if (root == null)
+				if (RCSValidatingCertificate(cert) == false)
 				{
 					signInfo.Status = SignStatus.NotTrusted;
 					return signInfo;
@@ -90,12 +90,26 @@ namespace RCS.Certificates
 		}
 		public static bool RCSCheckValidCertificate(Certificates.Certificate certificate)
 		{
-			if (RCSTCPClient.Connection == null)
+			if (RCSTCPClient.Connection == null || TCPSender == null)
 				return false;
 			Packet packet = new Packet();
 			packet.Type = PacketType.ValidatingCertificate;
 			packet.Data = new Certificate().FromRaw(certificate.Raw());
-			return (bool)CertificateManager.RCSTCPClient.Connection.SendAndWait(packet).Data;
+			return (bool)TCPSender.SendAndWait(packet, RCSTCPClient.Connection).Data;
+		}
+		public static Certificates.Certificate RequestCertificate(Guid guid)
+		{
+			Packet packet = new Packet();
+			packet.Type = PacketType.RequestCertificate;
+			packet.Data = guid;
+			return (Certificate)TCPSender.SendAndWait(packet, RCSTCPClient.Connection).Data;
+		}
+		public static Certificates.Certificate[] GetLastCertificates()
+		{
+			Packet packet = new Packet();
+			packet.Type = PacketType.RequestCertificates;
+			var certs = (Certificate[])TCPSender.SendAndWait(packet, RCSTCPClient.Connection).Data;
+			return certs;
 		}
 		public static bool RCSValidatingCertificate(Certificate certificate)
 		{
@@ -108,12 +122,12 @@ namespace RCS.Certificates
 					info_valid.Status == Certificates.Store.StatusSearch.NotValid ||
 					info_valid.Status == Certificates.Store.StatusSearch.ParentTimeDead)
 				return false;
-			else if (info_valid.Status == Certificates.Store.StatusSearch.NotFoundParent && RCSTCPClient.Connection != null)
+			else if (info_valid.Status == Certificates.Store.StatusSearch.NotFoundParent && RCSTCPClient.Connection != null && TCPSender != null)
 			{
 				Packet packet = new Packet();
 				packet.Type = PacketType.ValidatingCertificate;
 				packet.Data = info_valid.LastParent;
-				return (bool)RCSTCPClient.Connection.SendAndWait(packet).Data;
+				return (bool)TCPSender.SendAndWait(packet, RCSTCPClient.Connection).Data;
 			}
 			return false;
 		}

@@ -9,6 +9,7 @@ using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
 using System.Text;
@@ -93,12 +94,25 @@ namespace RCS.Net.Tcp
 		{
 		}
 	}
+	public class ExceptionAbortNetworkStream : Exception
+	{
+		public ExceptionAbortNetworkStream(string message)
+		: base(message)
+		{
+		}
+
+		public ExceptionAbortNetworkStream(string message, Exception inner)
+			: base(message, inner)
+		{
+		}
+	}
 	public class WaitInfoPacket
 	{
 		public DateTime Time { get; set; } = DateTime.Now;
 		public int Timeout { get; set; }
 		public BasePacket Packet { get; set; } = null;
 		public Stopwatch Stopwatch { get; set; } = Stopwatch.StartNew();
+		public bool RSTStopwatch { get; set; } = false;
 	}
 	public enum ModeConnection : byte
 	{
@@ -108,7 +122,7 @@ namespace RCS.Net.Tcp
 	public class RCSTCPConnection
 	{
 		private List<Packets.BasePacket> _Packets = new List<Packets.BasePacket>();
-		private Dictionary<Guid, WaitInfoPacket> WaitPackets = new Dictionary<Guid, WaitInfoPacket>();
+		private Dictionary<int, WaitInfoPacket> WaitPackets = new Dictionary<int, WaitInfoPacket>();
 		private byte[] PublicKey;
 		private byte[] PrivateKey;
 		private RCSMagma Magma = new RCSMagma();
@@ -116,7 +130,7 @@ namespace RCS.Net.Tcp
 		private object _lock1 = new object();
 		private bool BlockTX = false;
 		private bool InitialConnect = false;
-		private int BufferSize { get; set; } = 1024 * 512; // 1kb
+		private int BufferSize { get; set; } = 1024 * 512; // 512kb
 		private IFirewall Firewall { get; set; }
 		public int TimeoutWaitPacket { get; set; } = 10_000;
 		public NetworkStream NetworkStream { get; set; }
@@ -136,10 +150,7 @@ namespace RCS.Net.Tcp
 			NetworkStream.WriteTimeout = 700;
 			PublicKey = public_key;
 			PrivateKey = private_key;
-			if (PublicKey == null)
-				Mode = ModeConnection.Server;
-			else
-				Mode = ModeConnection.Client;
+			Mode = PublicKey == null ? ModeConnection.Server : ModeConnection.Client;
 			Firewall = firewall;
 		}
 		public void Abort()
@@ -150,7 +161,7 @@ namespace RCS.Net.Tcp
 		{
 			byte[] raw = new byte[0];
 			raw = packet.Raw(Magma);
-			await WriteStream(raw);
+			await WriteStream(raw, packet.UID);
 			if (packet.Type == PacketType.ValidatingCertificate)
 				Console.WriteLine($"TX ({raw.Length}) - {packet.UID};{packet.Type}; {DateTime.Now}.{DateTime.Now.Millisecond}");
 		}
@@ -185,7 +196,7 @@ namespace RCS.Net.Tcp
 					Packet packet = new Packet();
 					packet.Type = PacketType.InitialConnect;
 					packet.Data = Magma;
-					WriteStream(packet.Raw(PublicKey));
+					WriteStream(packet.Raw(PublicKey), packet.UID);
 					var answer = new Packet().FromRaw(WaitReadNetworkStream(), Magma);
 
 					InitialConnect = true;
@@ -196,7 +207,7 @@ namespace RCS.Net.Tcp
 					Packet packet = new Packet();
 					packet.Type = PacketType.InitialConnect;
 					packet.Data = magma;
-					WriteStream(packet.Raw(Magma));
+					WriteStream(packet.Raw(Magma), packet.UID);
 					Magma = magma;
 					var answer = new Packet().FromRaw(WaitReadNetworkStream(), Magma);
 				}
@@ -207,14 +218,29 @@ namespace RCS.Net.Tcp
 			}
 			catch (Exception ex) { Console.WriteLine(ex); throw new Exception(ex.Message); }
 		}
-		private async Task WriteStream(byte[] data)
+		private async Task WriteStream(byte[] data, int uid)
 		{
-			int length = data.Length;
-			byte[] lengthBytes = BitConverter.GetBytes(length);
+			//int length = data.Length;
+			//byte[] lengthBytes = BitConverter.GetBytes(length);
+			//
+			//byte[] result = new byte[length + sizeof(int)];
+			//lengthBytes.CopyTo(result, 0);
+			//data.CopyTo(result, sizeof(int));
 
-			byte[] result = new byte[length + sizeof(int)];
-			lengthBytes.CopyTo(result, 0);
-			data.CopyTo(result, sizeof(int));
+			var header = Header.Header1(data.Length, uid);
+
+			int structSize = Marshal.SizeOf(header);
+			byte[] struct_bytes = new byte[structSize];
+
+			IntPtr ptr = Marshal.AllocHGlobal(structSize);
+			Marshal.StructureToPtr(header, ptr, false);
+			Marshal.Copy(ptr, struct_bytes, 0, structSize);
+			Marshal.FreeHGlobal(ptr);
+
+
+			byte[] result = new byte[data.Length + struct_bytes.Length];
+			struct_bytes.CopyTo(result, 0);
+			data.CopyTo(result, struct_bytes.Length);
 			try
 			{
 				await NetworkStream.WriteAsync(result);
@@ -287,6 +313,7 @@ namespace RCS.Net.Tcp
 							{
 								Console.WriteLine($"[RST] {packet.Type};{packet.UID}");
 								WaitPackets[packet.UID].Stopwatch.Restart();
+								WaitPackets[packet.UID].RSTStopwatch = true;
 							}
 							else
 								WaitPackets[packet.UID].Packet = packet;
@@ -328,28 +355,34 @@ namespace RCS.Net.Tcp
 		}
 		private async Task<byte[]> _Read()
 		{
-			int headerSize = sizeof(int);
-			byte[] headerBuffer = new byte[headerSize];
-			int bytesRead = await NetworkStream.ReadAsync(headerBuffer, 0, headerSize).ConfigureAwait(false);
+			int structSize = Marshal.SizeOf(typeof(HeaderPacket));
+			byte[] headerBuffer = new byte[structSize];
+			int bytesRead = await NetworkStream.ReadAsync(headerBuffer, 0, structSize).ConfigureAwait(false);
 
-			if (bytesRead < headerSize)
+			if (bytesRead < structSize)
 			{
-				Console.WriteLine($"[BAD HEAD]");
+				//Console.WriteLine($"[BAD HEAD]");
 				return null;
 			}
 
+			IntPtr ptr = Marshal.AllocHGlobal(structSize);
+			Marshal.Copy(headerBuffer, 0, ptr, structSize);
+			HeaderPacket header = (HeaderPacket)Marshal.PtrToStructure(ptr, typeof(HeaderPacket));
+			Marshal.FreeHGlobal(ptr);
 
-
-			int packetLength = BitConverter.ToInt32(headerBuffer, 0);
 			int totalBytesRead = 0;
 
-			if (Firewall.ValidateHeader(headerBuffer) == false)
+			if (Firewall.ValidateHeader(header) == false)
 			{
+				Packet packet = new Packet();
+				packet.UID = header.UID;
+				packet.Type = PacketType.FirewallBLock;
+				Send(packet);
 				Console.WriteLine($"[CONNECTION FIREWALL] ValidateHeader");
 				// очищаем поток
-				while (totalBytesRead < packetLength)
+				while (totalBytesRead < header.DataSize)
 				{
-					var buffer_size = Buffer.Length <= packetLength - totalBytesRead ? Buffer.Length : packetLength - totalBytesRead;
+					var buffer_size = Buffer.Length <= header.DataSize - totalBytesRead ? Buffer.Length : header.DataSize - totalBytesRead;
 					bytesRead = await NetworkStream.ReadAsync(Buffer, 0, buffer_size).ConfigureAwait(false);
 					totalBytesRead += bytesRead;
 					Statistics.RXBytes += bytesRead;
@@ -358,15 +391,15 @@ namespace RCS.Net.Tcp
 			}
 			using (MemoryStream ms = new MemoryStream())
 			{
-				while (totalBytesRead < packetLength)
+				while (totalBytesRead < header.DataSize)
 				{
-					var buffer_size = Buffer.Length <= packetLength - totalBytesRead ? Buffer.Length : packetLength - totalBytesRead;
+					var buffer_size = Buffer.Length <= header.DataSize - totalBytesRead ? Buffer.Length : header.DataSize - totalBytesRead;
 					bytesRead = await NetworkStream.ReadAsync(Buffer, 0, buffer_size).ConfigureAwait(false);
 					totalBytesRead += bytesRead;
 					ms.Write(Buffer, 0, bytesRead);
 					Statistics.RXBytes += bytesRead;
 				}
-				if (totalBytesRead < packetLength)
+				if (totalBytesRead < header.DataSize)
 				{
 					Console.WriteLine($"ERROR READ");
 					return null;
@@ -395,7 +428,7 @@ namespace RCS.Net.Tcp
 			try
 			{
 				Stopwatch stopwatch = Stopwatch.StartNew();
-				while (wait_info_packet.Stopwatch.ElapsedMilliseconds < TimeoutWaitPacket)
+				while (wait_info_packet.Stopwatch.ElapsedMilliseconds < TimeoutWaitPacket && NetworkStream != null)
 				{
 					if (WaitPackets[packet.UID].Packet != null)
 					{
@@ -403,10 +436,26 @@ namespace RCS.Net.Tcp
 						WaitPackets.Remove(packet.UID);
 						return x;
 					}
+					if (Mode == ModeConnection.Server)
+						Thread.Sleep(1);
 				}
+				if (NetworkStream == null)
+					throw new ExceptionAbortNetworkStream("Abort network");
 			}
 			catch (Exception ex) { WaitPackets.Remove(packet.UID); Console.WriteLine(ex); }
-			throw new TimeoutException("Timeout wait packet");
+			throw new ExceptionTimeout("Timeout wait packet");
+		}
+		public WaitInfoPacket SendAndWaitUnlimited(BasePacket packet)
+		{
+			var wait_info_packet = new WaitInfoPacket() { };
+			WaitPackets.Add(packet.UID, wait_info_packet);
+			Send(packet);
+
+			return wait_info_packet;
+		}
+		public void RemoveWaitPacket(int guid)
+		{
+			WaitPackets.Remove(guid);
 		}
 		private void Packet_CallbackAnswerEvent(BasePacket packet)
 		{

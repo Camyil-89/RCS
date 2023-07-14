@@ -20,7 +20,7 @@ namespace RCS.Net.Firewall
 			return true;
 		}
 
-		public bool ValidateHeader(byte[] bytes)
+		public bool ValidateHeader(HeaderPacket header)
 		{
 			return true;
 		}

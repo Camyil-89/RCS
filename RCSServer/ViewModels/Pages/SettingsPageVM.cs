@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using RCSServer.Service.Server;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace RCSServer.ViewModels.Pages
 {
@@ -28,6 +29,9 @@ namespace RCSServer.ViewModels.Pages
 
 		private void Navigate_CallbackOpenMenuEvent(System.Windows.Controls.Page page)
 		{
+			if (page != App.Host.Services.GetRequiredService<Views.Pages.SettingsPage>())
+				return;
+
 			UpdateValue();
 		}
 		private void UpdateValue()

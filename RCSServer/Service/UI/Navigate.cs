@@ -21,6 +21,7 @@ namespace RCSServer.Service.UI
 		{
 			MainVM.TagSelectClients = page == App.Host.Services.GetRequiredService<Views.Pages.ClientsPage>() ? "focus" : "";
 			MainVM.TagSelectSettings = page == App.Host.Services.GetRequiredService<Views.Pages.SettingsPage>() ? "focus" : "";
+			MainVM.TagTrustedCertificate = page == App.Host.Services.GetRequiredService<Views.Pages.TrustedCertificatesPage>() ? "focus" : "";
 			MainVM.SelectedPage = page;
 
 			CallbackOpenMenuEvent?.Invoke(page);

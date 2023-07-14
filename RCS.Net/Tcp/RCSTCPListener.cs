@@ -9,6 +9,7 @@ using System.Net.Sockets;
 using System.Printing;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media.Animation;
 
 namespace RCS.Net.Tcp
 {
@@ -64,8 +65,7 @@ namespace RCS.Net.Tcp
 	}
 	public class RCSTCPListener
 	{
-		private IFirewall Firewall { get; set; } = new SvarogFirewall();
-
+		private IFirewall Firewall { get; set; } = new SvarogFirewall(); // new EmptyFirewall(); //
 		public TcpListener TcpListener { get; private set; }
 		public List<TcpClient> Clients = new List<TcpClient>();
 		public byte[] PrivateKey { get; set; } = new byte[16];

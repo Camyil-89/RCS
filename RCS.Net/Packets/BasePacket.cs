@@ -8,6 +8,7 @@ using System.Net.Sockets;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -34,7 +35,8 @@ namespace RCS.Net.Packets
 	public class RCSMagma
 	{
 		public byte[] KEY;
-		public byte[] IV;
+		public byte[] IV = new byte[8];
+		public bool IV_Mode = true;
 
 		public RCSMagma()
 		{
@@ -46,7 +48,15 @@ namespace RCS.Net.Packets
 			magma.GenerateIV();
 			magma.GenerateKey();
 			KEY = magma.Key;
-			IV = magma.IV;
+			if (IV_Mode)
+				IV = magma.IV;
+			else
+			{
+				for (int i = 0; i < 8; i++)
+				{
+					IV[i] = 0xff;
+				}
+			}
 		}
 		public OpenGost.Security.Cryptography.Magma GetMagma()
 		{
@@ -58,7 +68,7 @@ namespace RCS.Net.Packets
 		}
 		public byte[] Encrypt(byte[] data)
 		{
-			var magma = GetMagma();	
+			var magma = GetMagma();
 
 			using (var encryptor = magma.CreateEncryptor())
 			{
@@ -90,8 +100,14 @@ namespace RCS.Net.Packets
 	[Serializable]
 	public abstract class BasePacket
 	{
-		public float Version = 1;
-		public Guid UID = Guid.NewGuid();
+		public BasePacket()
+		{
+			Guid guid = Guid.NewGuid();
+			byte[] bytes = guid.ToByteArray();
+			UID = BitConverter.ToInt32(bytes, 0);
+		}
+		public byte Version = 1;
+		public int UID;
 		public PacketType Type = PacketType.None;
 		public object Data;
 
@@ -159,13 +175,13 @@ namespace RCS.Net.Packets
 				BinaryFormatter formatter = new BinaryFormatter();
 				formatter.Serialize(memoryStream, this);
 				var data = memoryStream.ToArray();
-				return EncryptWithRSA(data, publicKey);
+				return EncryptWithMagma(data, publicKey);
 			}
 		}
 
 		public virtual BasePacket FromRaw(byte[] array, byte[] privateKey)
 		{
-			var data = DecryptWithRSA(array, privateKey);
+			var data = DecryptWithMagma(array, privateKey);
 			using (MemoryStream memoryStream = new MemoryStream(data))
 			{
 				BinaryFormatter formatter = new BinaryFormatter();
@@ -176,99 +192,49 @@ namespace RCS.Net.Packets
 		{
 			return key == null || key.Length == 0;
 		}
-		private byte[] EncryptWithRSA(byte[] data, byte[] publicKey)
+		private byte[] EncryptWithMagma(byte[] data, byte[] publicKey)
 		{
 			using (var rsa = new RSACryptoServiceProvider())
 			{
 				rsa.ImportRSAPublicKey(publicKey, out _);
-				// Генерируем симметричный ключ AES
-				using (var aes = Aes.Create())
-				{
-					aes.GenerateKey();
-					// Шифруем данные с помощью AES
-					byte[] encryptedData = EncryptWithAES(data, aes.Key);
 
-					// Шифруем симметричный ключ AES с помощью RSA
-					byte[] encryptedKey = rsa.Encrypt(aes.Key, false);
+				RCSMagma magma = new RCSMagma();
+				magma.IV_Mode = false;
+				magma.Generate();
+				byte[] encryptedData = magma.Encrypt(data);
 
-					// Объединяем зашифрованный ключ и зашифрованные данные
-					byte[] encryptedResult = new byte[encryptedKey.Length + encryptedData.Length];
-					Buffer.BlockCopy(encryptedKey, 0, encryptedResult, 0, encryptedKey.Length);
-					Buffer.BlockCopy(encryptedData, 0, encryptedResult, encryptedKey.Length, encryptedData.Length);
+				// Шифруем симметричный ключ AES с помощью RSA
+				byte[] encryptedKey = rsa.Encrypt(magma.KEY, false);
+				// Объединяем зашифрованный ключ и зашифрованные данные
+				byte[] encryptedResult = new byte[encryptedKey.Length + encryptedData.Length];
+				Buffer.BlockCopy(encryptedKey, 0, encryptedResult, 0, encryptedKey.Length);
+				Buffer.BlockCopy(encryptedData, 0, encryptedResult, encryptedKey.Length, encryptedData.Length);
 
-					return encryptedResult;
-				}
+				return encryptedResult;
 			}
 		}
 
-		private byte[] DecryptWithRSA(byte[] encryptedData, byte[] privateKey)
+		private byte[] DecryptWithMagma(byte[] encryptedData, byte[] privateKey)
 		{
 			using (var rsa = new RSACryptoServiceProvider())
 			{
 				rsa.ImportRSAPrivateKey(privateKey, out _);
 
-				// Разделяем зашифрованный ключ и зашифрованные данные
 				byte[] encryptedKey = new byte[rsa.KeySize / 8];
 				byte[] encryptedDataOnly = new byte[encryptedData.Length - encryptedKey.Length];
 				Buffer.BlockCopy(encryptedData, 0, encryptedKey, 0, encryptedKey.Length);
 				Buffer.BlockCopy(encryptedData, encryptedKey.Length, encryptedDataOnly, 0, encryptedDataOnly.Length);
 
-				// Расшифровываем симметричный ключ AES с помощью RSA
 				byte[] decryptedKey = rsa.Decrypt(encryptedKey, false);
 
-				// Расшифровываем данные с помощью AES
-				byte[] decryptedData = DecryptWithAES(encryptedDataOnly, decryptedKey);
+				RCSMagma magma = new RCSMagma();
+				magma.IV_Mode = false;
+				magma.Generate();
+				magma.KEY = decryptedKey;
+
+				byte[] decryptedData = magma.Decrypt(encryptedDataOnly);
 
 				return decryptedData;
-			}
-		}
-
-		private byte[] EncryptWithAES(byte[] data, byte[] key)
-		{
-			using (var aes = Aes.Create())
-			{
-				aes.Key = key;
-				aes.Mode = CipherMode.CBC;
-				aes.GenerateIV();
-
-				using (var encryptor = aes.CreateEncryptor())
-				using (var memoryStream = new MemoryStream())
-				{
-					memoryStream.Write(aes.IV, 0, aes.IV.Length);
-
-					using (var cryptoStream = new CryptoStream(memoryStream, encryptor, CryptoStreamMode.Write))
-					{
-						cryptoStream.Write(data, 0, data.Length);
-						cryptoStream.FlushFinalBlock();
-					}
-
-					return memoryStream.ToArray();
-				}
-			}
-		}
-
-		private byte[] DecryptWithAES(byte[] encryptedData, byte[] key)
-		{
-			using (var aes = Aes.Create())
-			{
-				aes.Key = key;
-				aes.Mode = CipherMode.CBC;
-
-				byte[] iv = new byte[aes.IV.Length];
-				Buffer.BlockCopy(encryptedData, 0, iv, 0, iv.Length);
-				aes.IV = iv;
-
-				using (var decryptor = aes.CreateDecryptor())
-				using (var memoryStream = new MemoryStream())
-				{
-					using (var cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Write))
-					{
-						cryptoStream.Write(encryptedData, iv.Length, encryptedData.Length - iv.Length);
-						cryptoStream.FlushFinalBlock();
-					}
-
-					return memoryStream.ToArray();
-				}
 			}
 		}
 	}

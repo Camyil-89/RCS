@@ -155,7 +155,7 @@ namespace RCS.ViewModels.Windows
 				var root = CertificateManager.Store.GetItem(Certificate.Info.MasterUID);
 				if (root == null && ClientManager.CenterCertificationsPageVM.EnableDisconnectButton == true)
 				{
-					Service.UI.WindowManager.ShowInfoAboutCertificate(ClientManager.RequestCertificate(Certificate.Info.MasterUID));
+					Service.UI.WindowManager.ShowInfoAboutCertificate(CertificateManager.RequestCertificate(Certificate.Info.MasterUID));
 				}
 				else
 					Service.UI.WindowManager.ShowInfoAboutCertificate(root.Certificate);

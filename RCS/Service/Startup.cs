@@ -71,6 +71,7 @@ namespace RCS.Service
 		public static void MainWindow_Loaded(object sender, System.Windows.RoutedEventArgs e)
 		{
 			Log.WriteLine($"Startup.MainWindow_Loaded", LogLevel.Warning);
+			CertificateManager.TCPSender = new TCPSender();
 			CertificateManager.Store.Load();
 			try
 			{

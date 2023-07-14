@@ -15,6 +15,7 @@ namespace RCSServer.Service
 	{
 		public static Settings Instance => App.Host.Services.GetRequiredService<Settings>();
 
+		public CertificateStore CertificateStore => CertificateManager.Store;
 
 		#region Cerificate: Description
 		/// <summary>Description</summary>

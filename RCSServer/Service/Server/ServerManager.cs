@@ -27,7 +27,7 @@ namespace RCSServer.Service.Server
 
 		private static void Server_CallbackConnectClientEvent(RCS.Net.Tcp.RCSClient client)
 		{
-			Settings.Instance.Clients.Add(client);
+			App.Current.Dispatcher.Invoke(() => { Settings.Instance.Clients.Add(client); });
 			Log.WriteLine($"Connect: {client.EndPoint}");
 		}
 

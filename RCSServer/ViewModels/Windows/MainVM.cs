@@ -29,6 +29,13 @@ namespace RCSServer.ViewModels.Windows
 		#endregion
 
 
+		#region TagTrustedCertificate: Description
+		/// <summary>Description</summary>
+		private string _TagTrustedCertificate;
+		/// <summary>Description</summary>
+		public string TagTrustedCertificate { get => _TagTrustedCertificate; set => Set(ref _TagTrustedCertificate, value); }
+		#endregion
+
 		#region TagSelectSettings: Description
 		/// <summary>Description</summary>
 		private string _TagSelectSettings;

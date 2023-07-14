@@ -48,7 +48,7 @@ namespace RCS.ViewModels.Pages.Main
 			try
 			{
 				string info = "";
-				foreach (var i in Service.UI.Client.ClientManager.GetLastCertificates())
+				foreach (var i in CertificateManager.GetLastCertificates())
 				{
 					if (File.Exists($"{XmlProvider.PathToTrustedCertificates}\\{i.Info.UID}.сертификат") == false)
 					{

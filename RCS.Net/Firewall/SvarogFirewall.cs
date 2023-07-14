@@ -63,10 +63,9 @@ namespace RCS.Net.Firewall
 			return BannedIP.ContainsKey(ip) == false;
 		}
 
-		public bool ValidateHeader(byte[] bytes)
+		public bool ValidateHeader(HeaderPacket header)
 		{
-			int packetLength = BitConverter.ToInt32(bytes, 0);
-			return packetLength < MaxSizePacket;
+			return header.DataSize < MaxSizePacket;
 		}
 
 		public bool ValidatePacket(BasePacket packet)

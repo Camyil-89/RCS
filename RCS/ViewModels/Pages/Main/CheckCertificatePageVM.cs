@@ -90,7 +90,7 @@ namespace RCS.ViewModels.Pages.Main
 					//}
 					//MessageBoxHelper.InfoShow($"Сертификат действителен!");
 				}
-				catch (Exception ex) { MessageBoxHelper.WarningShow($"Не удалось загрузить сертификат!\n\n{dialog.FileName}"); }
+				catch (Exception ex) { MessageBoxHelper.WarningShow($"Не удалось загрузить сертификат!\n\n{dialog.FileName}"); Console.WriteLine(ex); }
 			}
 		}
 		#endregion
@@ -214,9 +214,7 @@ namespace RCS.ViewModels.Pages.Main
 				{
 					SelectedCertificate = Certificates.CertificateManager.RCSLoadCertificateSecret(dialog.FileName);
 					CertificateManager.Store.Load();
-					var root = CertificateManager.Store.FindMasterCertificate(SelectedCertificate.Certificate).Certificate;
-
-					if (root == null)
+					if (CertificateManager.RCSValidatingCertificate(SelectedCertificate.Certificate) == false)
 					{
 						MessageBoxHelper.WarningShow("Данный сертификат не действителен!");
 					}

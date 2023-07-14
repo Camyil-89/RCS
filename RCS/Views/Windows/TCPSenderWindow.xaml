@@ -1,0 +1,41 @@
+﻿<Window x:Class="RCS.Views.Windows.TCPSenderWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:RCS.Views.Windows"
+        xmlns:vm="clr-namespace:RCS.ViewModels.Windows"
+        xmlns:CUI="clr-namespace:RCS.Service.UI"
+		WindowStartupLocation="CenterScreen"
+        mc:Ignorable="d"
+		WindowStyle="None"
+		BorderThickness="1"
+		BorderBrush="Black"
+        Title="РСС ожидание"
+		ResizeMode="NoResize"
+		Height="125"
+		Width="300">
+	<Window.DataContext>
+		<vm:TCPSenderWindowVM/>
+	</Window.DataContext>
+	<Grid Margin="2">
+		<StackPanel Grid.Row="0">
+			<CUI:ToolTipTextBlock Text="{Binding InfoProgress}"
+								  TextAlignment="Center"
+								Margin="0 5 0 0"
+								 FontSize="14"
+								  TextWrapping="Wrap"
+								  Width="290"
+								  Height="20"
+								 ToolTip="{Binding InfoProgress}"
+								  ToolTipService.InitialShowDelay="250"/>
+			<ProgressBar Height="30"
+						 IsIndeterminate="True"/>
+			<Button Content="Отмена"
+				Margin="0 25 0 0"
+				Style="{StaticResource BaseButton}"
+					Command="{Binding CancelCommand}"/>
+		</StackPanel>
+
+	</Grid>
+</Window>

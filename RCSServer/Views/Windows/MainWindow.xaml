@@ -25,6 +25,11 @@
 						Tag="{Binding TagSelectClients}"
 						Command="{Binding SelectPageCommand}"
 						CommandParameter="{Binding ClientsPage ,Source={StaticResource Locator}}"/>
+				<Button Content="Сертификаты"
+						Style="{StaticResource LeftMenu}"
+						Tag="{Binding TagTrustedCertificate}"
+						Command="{Binding SelectPageCommand}"
+						CommandParameter="{Binding TrustedCertificatesPage ,Source={StaticResource Locator}}"/>
 				<Button Content="Настройки"
 						Style="{StaticResource LeftMenu}"
 						Tag="{Binding TagSelectSettings}"

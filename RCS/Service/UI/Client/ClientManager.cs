@@ -91,20 +91,7 @@ namespace RCS.Service.UI.Client
 				CenterCertificationsPageVM.LastUpdateKeysText = $"";
 			}
 		}
-		public static Certificates.Certificate RequestCertificate(Guid guid)
-		{
-			Packet packet = new Packet();
-			packet.Type = PacketType.RequestCertificate;
-			packet.Data = guid;
-			return (Certificate)CertificateManager.RCSTCPClient.Connection.SendAndWait(packet).Data;
-		}
-		public static Certificates.Certificate[] GetLastCertificates()
-		{
-			Packet packet = new Packet();
-			packet.Type = PacketType.RequestCertificates;
-			var certs = (Certificate[])CertificateManager.RCSTCPClient.Connection.SendAndWait(packet).Data;
-			return certs;
-		}
+		
 		public static void Disconnect()
 		{
 			CenterCertificationsPageVM.EnableDisconnectButton = false;

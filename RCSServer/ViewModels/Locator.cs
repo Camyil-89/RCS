@@ -16,8 +16,10 @@ namespace RCSServer.ViewModels
 
 		public RCSServer.ViewModels.Pages.ClientsPageVM ClientsPageVM => App.Host.Services.GetRequiredService<RCSServer.ViewModels.Pages.ClientsPageVM>();
 		public RCSServer.ViewModels.Pages.SettingsPageVM SettingsPageVM => App.Host.Services.GetRequiredService<RCSServer.ViewModels.Pages.SettingsPageVM>();
+		public RCSServer.ViewModels.Pages.TrustedCertificatesPageVM TrustedCertificatesPageVM => App.Host.Services.GetRequiredService<RCSServer.ViewModels.Pages.TrustedCertificatesPageVM>();
 
 		public ClientsPage ClientsPage => App.Host.Services.GetRequiredService<ClientsPage>();
 		public SettingsPage SettingsPage => App.Host.Services.GetRequiredService<SettingsPage>();
+		public TrustedCertificatesPage TrustedCertificatesPage => App.Host.Services.GetRequiredService<TrustedCertificatesPage>();
 	}
 }
