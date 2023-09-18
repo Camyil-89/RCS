@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using RCS.Certificates;
 using RCS.Net.Packets;
-using RCS.Net.Tcp;
+using RCS.Net;
 using RCS.Service;
 using RCSServer.Models;
 using RCSServer.Service.UI;
@@ -26,7 +26,7 @@ namespace RCSServer.Service
 			if (IsInit)
 				return;
 			IsInit = true;
-			BindingOperations.EnableCollectionSynchronization(Settings.Instance.Clients, _lock);
+			//BindingOperations.EnableCollectionSynchronization(Settings.Instance.Clients, _lock);
 
 			Log.WriteLine($"Startup.Init", LogLevel.Warning);
 			App.Current.MainWindow.Loaded += Service.Startup.MainWindow_Loaded;
@@ -73,7 +73,7 @@ namespace RCSServer.Service
 			RCS.Certificates.CertificateManager.Store.Load();
 			try
 			{
-				RCSServer.Service.Settings.Instance.Cerificate = CertificateManager.RCSLoadCertificateSecret(Settings.Instance.Parametrs.PathToCertificate);
+				RCSServer.Service.Settings.Instance.Certificate = CertificateManager.RCSLoadCertificateSecret(Settings.Instance.Parametrs.PathToCertificate);
 			}
 			catch { }
 			Server.ServerManager.Start();

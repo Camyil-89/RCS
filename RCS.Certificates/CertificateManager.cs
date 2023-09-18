@@ -1,10 +1,13 @@
-﻿using RCS.Certificates;
+﻿using Microsoft.VisualBasic;
+using RCS.Certificates;
+using RCS.Certificates.Store;
 using RCS.Net.Packets;
 using RCS.Service;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Sockets;
 using System.Runtime.ConstrainedExecution;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
@@ -34,7 +37,8 @@ namespace RCS.Certificates
 	public static class CertificateManager
 	{
 		public static Certificates.Store.CertificateStore Store { get; set; } = new Certificates.Store.CertificateStore();
-		public static Net.Tcp.RCSTCPClient RCSTCPClient { get; set; } = new Net.Tcp.RCSTCPClient();
+		//public static Net.Tcp.RCSTCPClient RCSTCPClient { get; set; } = new Net.Tcp.RCSTCPClient();
+		public static EasyTCP.Client Client = new EasyTCP.Client();
 		public static ITCPSender TCPSender { get; set; } = null;
 		public static CertificateSecret RCSCreateCertificate(CreateSettingsCertificate settings)
 		{
@@ -90,44 +94,44 @@ namespace RCS.Certificates
 		}
 		public static bool RCSCheckValidCertificate(Certificates.Certificate certificate)
 		{
-			if (RCSTCPClient.Connection == null || TCPSender == null)
+			
+			if (Client.CheckConnectionWithServer() == false)
 				return false;
-			Packet packet = new Packet();
-			packet.Type = PacketType.ValidatingCertificate;
-			packet.Data = new Certificate().FromRaw(certificate.Raw());
-			return (bool)TCPSender.SendAndWait(packet, RCSTCPClient.Connection).Data;
+			PacketCertificate packet = new PacketCertificate();
+			packet.CertificateObj = new Certificate().FromRaw(certificate.Raw());
+			return TCPSender.SendAndWait<PacketCertificate>(packet, Client).IsValid;
 		}
 		public static Certificates.Certificate RequestCertificate(Guid guid)
 		{
-			Packet packet = new Packet();
-			packet.Type = PacketType.RequestCertificate;
-			packet.Data = guid;
-			return (Certificate)TCPSender.SendAndWait(packet, RCSTCPClient.Connection).Data;
+			return (Certificate)TCPSender.SendAndWait<PacketRequestCertificate>(new PacketRequestCertificate() { RequestPacket = guid}, Client).Certificate;
 		}
 		public static Certificates.Certificate[] GetLastCertificates()
 		{
-			Packet packet = new Packet();
-			packet.Type = PacketType.RequestCertificates;
-			var certs = (Certificate[])TCPSender.SendAndWait(packet, RCSTCPClient.Connection).Data;
-			return certs;
+			var answer = TCPSender.SendAndWait<PacketRequestCertificates>(new PacketRequestCertificates(), Client);
+			return answer.Certificates.ConvertAll(i => (Certificate)i).ToArray();
+		}
+		public static IEnumerable<Store.NetStoreItem> GetNetCertificates()
+		{
+			var answer = TCPSender.SendAndWait<PacketRequestNetCertificates>(new PacketRequestNetCertificates(), Client);
+			foreach (var i in answer.Certificates)
+				yield return (NetStoreItem)i;
 		}
 		public static bool RCSValidatingCertificate(Certificate certificate)
 		{
 
 			var info_valid = Store.FindMasterCertificate(certificate);
-				
+
 			if (info_valid.Status == Certificates.Store.StatusSearch.Find)
 				return true;
 			else if (info_valid.Status == Certificates.Store.StatusSearch.TimeDead ||
 					info_valid.Status == Certificates.Store.StatusSearch.NotValid ||
 					info_valid.Status == Certificates.Store.StatusSearch.ParentTimeDead)
 				return false;
-			else if (info_valid.Status == Certificates.Store.StatusSearch.NotFoundParent && RCSTCPClient.Connection != null && TCPSender != null)
+			else if (info_valid.Status == Certificates.Store.StatusSearch.NotFoundParent && Client.CheckConnectionWithServer())
 			{
-				Packet packet = new Packet();
-				packet.Type = PacketType.ValidatingCertificate;
-				packet.Data = info_valid.LastParent;
-				return (bool)TCPSender.SendAndWait(packet, RCSTCPClient.Connection).Data;
+				PacketCertificate packet = new PacketCertificate();
+				packet.CertificateObj = info_valid.LastParent;
+				return TCPSender.SendAndWait<PacketCertificate>(packet, Client).IsValid;
 			}
 			return false;
 		}

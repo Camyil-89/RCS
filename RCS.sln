@@ -15,7 +15,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCSServer", "RCSServer\RCSS
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCS.Tests", "RCS.Tests\RCS.Tests.csproj", "{AD723C02-4DFD-4862-995D-DF7D22DC850B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCS.Net", "RCS.Net\RCS.Net.csproj", "{611EF4F6-4D06-4A15-BD33-6E6F60D0431B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCS.Net", "RCS.Net\RCS.Net.csproj", "{611EF4F6-4D06-4A15-BD33-6E6F60D0431B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasyTCP", "..\..\cs\EasyTCP\EasyTCP\EasyTCP.csproj", "{11CE4441-92D0-455A-BDD0-B1BA1D370377}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{611EF4F6-4D06-4A15-BD33-6E6F60D0431B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{611EF4F6-4D06-4A15-BD33-6E6F60D0431B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{611EF4F6-4D06-4A15-BD33-6E6F60D0431B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{11CE4441-92D0-455A-BDD0-B1BA1D370377}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{11CE4441-92D0-455A-BDD0-B1BA1D370377}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{11CE4441-92D0-455A-BDD0-B1BA1D370377}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{11CE4441-92D0-455A-BDD0-B1BA1D370377}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

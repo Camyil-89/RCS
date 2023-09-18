@@ -1,6 +1,6 @@
 ﻿using RCS.Base.Command;
 using RCS.Net.Packets;
-using RCS.Net.Tcp;
+using RCS.Net;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,6 +9,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Runtime.InteropServices.ObjectiveC;
+using EasyTCP;
+using RCS.Service.UI;
 
 namespace RCS.ViewModels.Windows
 {
@@ -32,10 +35,10 @@ namespace RCS.ViewModels.Windows
 		#endregion
 
 
-		private BasePacket SendPacket = null;
-		public BasePacket AnswerPacket = null;
+		private object SendPacket = null;
+		public object AnswerPacket = null;
 
-		public RCSTCPConnection Connection;
+		public EasyTCP.Client Client;
 
 		#region UserCancel: Description
 		/// <summary>Description</summary>
@@ -54,45 +57,88 @@ namespace RCS.ViewModels.Windows
 		private void OnCancelCommandExecuted(object e)
 		{
 			UserCancel = true;
-			Connection.RemoveWaitPacket(SendPacket.UID);
+			//Connection.RemoveWaitPacket(SendPacket.UID);
 			Window.Close();
 		}
 		#endregion
 		#endregion
 
 		#region Functions
-		public void Init(BasePacket packet)
+		public void Init<T>(object packet)
 		{
 			SendPacket = packet;
-			Task.Run(Send);
+			Task.Run(() =>
+			{
+				Send<T>();
+			});
 		}
-		private void Send()
+		private static string FormatBytesPerSecond(double bytesPerSecond)
+		{
+			string[] suffixes = { "Б/с", "КБ/с", "МБ/с", "ГБ/с", "ТБ/с" };
+			int suffixIndex = 0;
+
+			while (bytesPerSecond >= 1024 && suffixIndex < suffixes.Length - 1)
+			{
+				bytesPerSecond /= 1024;
+				suffixIndex++;
+			}
+
+			return $"{bytesPerSecond:0.##} {suffixes[suffixIndex]}";
+		}
+		private void Send<T>()
 		{
 			Stopwatch stopwatch = Stopwatch.StartNew();
 			int RSTStopwatch = 0;
 			InfoProgress = "Отправка пакета...";
-			var info = Connection.SendAndWaitUnlimited(SendPacket);
-			InfoProgress = "Пакет отправлен!";
-			while (UserCancel == false)
+
+			try
 			{
-				if (info.Packet != null)
+				foreach (var i in Client.SendAndReceiveInfo<T>((T)SendPacket))
 				{
-					AnswerPacket = info.Packet;
-					Connection.RemoveWaitPacket(info.Packet.UID);
-					Window.Dispatcher.Invoke(() => { Window.Close(); });
-					break;
+					if (i.Packet != null)
+					{
+						AnswerPacket = i.Packet;
+						Window.Dispatcher.Invoke(() => { Window.Close(); });
+						return;
+					}
+					else if (i.ReceiveFromServer)
+					{
+						InfoProgress = $"Получено: {FormatBytesPerSecond(i.Info.Receive)} \\ {FormatBytesPerSecond(i.Info.TotalNeedReceive)} ({Math.Round(stopwatch.Elapsed.TotalSeconds, 1)} сек.)";
+
+					}
+					else
+					{
+						InfoProgress = $"Отправлено: {FormatBytesPerSecond(i.Info.Receive)} \\ {FormatBytesPerSecond(i.Info.TotalNeedReceive)} ({Math.Round(stopwatch.Elapsed.TotalSeconds, 1)} сек.)";
+					}
 				}
-				if (info.RSTStopwatch)
-				{
-					info.RSTStopwatch = false;
-					RSTStopwatch++;
-				}
-				Thread.Sleep(1);
-				if (RSTStopwatch > 0)
-					InfoProgress = $"Осталось совсем немного ({Math.Round(stopwatch.Elapsed.TotalSeconds, 1)} сек.)...";
-				else
-					InfoProgress = $"Ожидайте ответа ({Math.Round(stopwatch.Elapsed.TotalSeconds, 1)} сек.)...";
+			} catch (Exception ex)
+			{
+				MessageBoxHelper.WarningShow($"Не удалось получить ответ от сервера!\n{ex.Message}");
+				Window.Dispatcher.Invoke(() => { Window.Close(); });
 			}
+
+			//var info = Connection.SendAndWaitUnlimited(SendPacket);
+			//InfoProgress = "Пакет отправлен!";
+			//while (UserCancel == false)
+			//{
+			//	if (info.Packet != null)
+			//	{
+			//		AnswerPacket = info.Packet;
+			//		Connection.RemoveWaitPacket(info.Packet.UID);
+			//		Window.Dispatcher.Invoke(() => { Window.Close(); });
+			//		break;
+			//	}
+			//	if (info.RSTStopwatch)
+			//	{
+			//		info.RSTStopwatch = false;
+			//		RSTStopwatch++;
+			//	}
+			//	Thread.Sleep(1);
+			//	if (RSTStopwatch > 0)
+			//		InfoProgress = $"Осталось совсем немного ({Math.Round(stopwatch.Elapsed.TotalSeconds, 1)} сек.)...";
+			//	else
+			//		InfoProgress = $"Ожидайте ответа ({Math.Round(stopwatch.Elapsed.TotalSeconds, 1)} сек.)...";
+			//}
 		}
 		#endregion
 	}

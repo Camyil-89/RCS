@@ -14,6 +14,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -66,7 +68,7 @@ namespace RCS.ViewModels.Pages.Main
 
 		#region KeySizeList: Description
 		/// <summary>Description</summary>
-		private ObservableCollection<int> _KeySizeList = new ObservableCollection<int>() { 512, 1024 , 2048 , 4096 , 3072 , 7680 , 15360 };
+		private ObservableCollection<int> _KeySizeList = new ObservableCollection<int>() { 512, 1024, 2048, 4096, 3072, 7680, 15360 };
 		/// <summary>Description</summary>
 		public ObservableCollection<int> KeySizeList { get => _KeySizeList; set => Set(ref _KeySizeList, value); }
 		#endregion
@@ -93,6 +95,13 @@ namespace RCS.ViewModels.Pages.Main
 		public ObservableCollection<AttriburteView> AttributeView { get => _AttributeView; set => Set(ref _AttributeView, value); }
 		#endregion
 
+
+		#region IsSSL: Description
+		/// <summary>Description</summary>
+		private bool _IsSSL = false;
+		/// <summary>Description</summary>
+		public bool IsSSL { get => _IsSSL; set => Set(ref _IsSSL, value); }
+		#endregion
 		#region EnableButtonSelectCert: Description
 		/// <summary>Description</summary>
 		private bool _EnableButtonSelectCert = true;
@@ -220,6 +229,11 @@ namespace RCS.ViewModels.Pages.Main
 				settings.Name = InfoSertificate.Name;
 				if (SelfSign == false)
 					settings.MasterCertificate = SelectedCertificate;
+				if (IsSSL)
+				{
+					var x_cert = CreateCertificate(Certificates.CertificateManager.RCSCreateCertificate(settings));
+					settings.Info.AddAttribute(new CertificateAttribute() { Name = "RCS.SSL.CERTIFICATE.X509", Type = TypeAttribute.ByteArray, Data = x_cert.Export(X509ContentType.Pfx), FileName = "ssl.pfx" });
+				}
 				var cert = Certificates.CertificateManager.RCSCreateCertificate(settings);
 				cert.SaveToFile(dialog.FileName);
 				cert.Certificate.SaveToFile(dialog.FileName.Replace(".ссертификат", ".сертификат"));
@@ -230,7 +244,71 @@ namespace RCS.ViewModels.Pages.Main
 			UpdateViewAttribute();
 		}
 		#endregion
+		public static X509Certificate2 CreateCertificate(CertificateSecret certificate)
+		{
+			using (RSA rsa = RSA.Create(certificate.Certificate.LengthKey))
+			{
+				// Импорт открытого и закрытого ключей
+				rsa.ImportRSAPublicKey(certificate.Certificate.Info.PublicKey, out _);
+				rsa.ImportRSAPrivateKey(certificate.PrivateKey, out _);
 
+				// Создание запроса на самоподписанный сертификат
+				CertificateRequest request = new CertificateRequest("CN=RCS.SSL.CERTIFICATE.X509", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+
+				// Создание самоподписанного сертификата из запроса на сертификат
+				X509Certificate2 cert = request.CreateSelfSigned(certificate.Certificate.Info.DateCreate, certificate.Certificate.Info.DateDead);
+				return cert;
+			}
+		}
+		#region CreateSSLCertificateFromSecretCommand: Description
+		private ICommand _CreateSSLCertificateFromSecretCommand;
+		public ICommand CreateSSLCertificateFromSecretCommand => _CreateSSLCertificateFromSecretCommand ??= new LambdaCommand(OnCreateSSLCertificateFromSecretCommandExecuted, CanCreateSSLCertificateFromSecretCommandExecute);
+		private bool CanCreateSSLCertificateFromSecretCommandExecute(object e) => true;
+		private void OnCreateSSLCertificateFromSecretCommandExecuted(object e)
+		{
+			CommonOpenFileDialog dialog = new CommonOpenFileDialog();
+			dialog.IsFolderPicker = false;
+			dialog.InitialDirectory = XmlProvider.PathToTrustedCertificates;
+			dialog.Multiselect = false;
+
+			CommonFileDialogFilter filter = new CommonFileDialogFilter("Файлы сертификатов", "*.ссертификат");
+			dialog.Filters.Add(filter);
+			if (dialog.ShowDialog() == CommonFileDialogResult.Ok && dialog.FileName.EndsWith("ссертификат"))
+			{
+				try
+				{
+					var cert = Certificates.CertificateManager.RCSLoadCertificateSecret(dialog.FileName);
+					SaveFileDialog dialog1 = new SaveFileDialog();
+					dialog1.Title = "Выберите место сохранения";
+					dialog1.Filter = "Файлы .ssl.сертификат|*.ssl.сертификат";
+					var fl = new FileInfo(dialog.FileName);
+
+					var flin = new FileInfo(dialog.FileName);
+					dialog1.FileName = flin.Name.Replace(flin.Extension, ".ssl.ссертификат");
+					dialog1.DefaultExt = ".ssl.ссертификат";
+
+
+
+					if (dialog1.ShowDialog() == true)
+					{
+						var path_public_cert = dialog1.FileName.Replace("ссертификат", "сертификат");
+
+						var x_cert = CreateCertificate(cert);
+
+						cert.Certificate.Info.AddAttribute(new CertificateAttribute() { Name = "RCS.SSL.CERTIFICATE.X509", Type = TypeAttribute.ByteArray, Data = x_cert.Export(X509ContentType.Pfx) });
+						cert.SaveToFile(dialog1.FileName);
+						Console.WriteLine(dialog1.FileName);
+						cert = Certificates.CertificateManager.RCSLoadCertificateSecret(dialog.FileName);
+						cert.Certificate.Info.AddAttribute(new CertificateAttribute() { Name = "RCS.SSL.CERTIFICATE.X509", Type = TypeAttribute.ByteArray, Data = x_cert.PublicKey.ExportSubjectPublicKeyInfo() });
+						cert.Certificate.SaveToFile(path_public_cert);
+						Console.WriteLine(path_public_cert);
+						MessageBoxHelper.InfoShow($".ssl.ссертификат и .ssl.сертификат были созданы!");
+					}
+				}
+				catch (Exception ex) { MessageBoxHelper.WarningShow($"Не удалось загрузить сертификат!\n\n{dialog.FileName}\n\n{ex}"); }
+			}
+		}
+		#endregion
 
 		#region ChangeFileAttributeCommand: Description
 		private ICommand _ChangeFileAttributeCommand;

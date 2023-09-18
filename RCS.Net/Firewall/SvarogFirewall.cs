@@ -1,4 +1,7 @@
-﻿using RCS.Net.Packets;
+﻿using EasyTCP.Firewall;
+using EasyTCP.Packets;
+using EasyTCP;
+using RCS.Net.Packets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,31 +16,27 @@ namespace RCS.Net.Firewall
 	{
 		public DateTime Time { get; set; } = DateTime.Now;
 	}
-	public class SvarogFirewall : IFirewall
+	public class SvarogFirewall : EasyTCP.Firewall.IFirewall
 	{
-		private Dictionary<string, List<SvarogClientInfo>> Clients { get; set; } = new Dictionary<string, List<SvarogClientInfo>>();
+		private Dictionary<string, List<DateTime>> Clients { get; set; } = new Dictionary<string, List<DateTime>>();
 		public Dictionary<string, DateTime> BannedIP { get; set; } = new Dictionary<string, DateTime>();
 
 		public int TimeBanned { get; set; } = 300; // seconds
-		public int MaxPerMinuteConnection { get; set; } = 10;
-		public int MaxSizePacket { get; set; } = 1024 * 1024 * 25; // 25 mb
-		public bool Validate(byte[] bytes)
-		{
-			return bytes.Length < MaxSizePacket;
-		}
+		public int MaxPerMinuteConnection { get; set; } = 5;
+		public int MaxSizePacket { get; set; } = 1024 * 1024 * 25;
 		private void CheckClients()
 		{
 			foreach (var i in Clients)
 			{
 				DateTime currentTime = DateTime.Now;
 				DateTime oldestAllowedTime = currentTime.AddSeconds(-60);
-				Clients[i.Key].RemoveAll(cl => cl.Time < oldestAllowedTime);
+				Clients[i.Key].RemoveAll(time => time < oldestAllowedTime);
 
 				if (Clients[i.Key].Count > MaxPerMinuteConnection)
 				{
 					if (BannedIP.ContainsKey(i.Key))
 						BannedIP[i.Key] = DateTime.Now;
-					else 
+					else
 						BannedIP.Add(i.Key, DateTime.Now);
 				}
 			}
@@ -50,27 +49,44 @@ namespace RCS.Net.Firewall
 			foreach (var i in remove)
 				BannedIP.Remove(i);
 		}
-		public bool ValidateConnect(TcpClient client)
+
+
+		public bool ValidateRaw(byte[] data)
 		{
-			var ip = client.Client.RemoteEndPoint.ToString().Split(":")[0];
+			return data.Length < MaxSizePacket;
+		}
+
+		PacketFirewall IFirewall.ValidateRawAnswer(byte[] data)
+		{
+			return new PacketFirewall() { Code = 2, Answer = $"Bad size packet ({data.LongLength} \\ {MaxSizePacket})" };
+		}
+
+		PacketFirewall IFirewall.ValidateConnectAnswer(ServerClient client)
+		{
+			return new PacketFirewall() { Code = 3, Answer = "DDOS" };
+		}
+
+		public bool ValidateConnect(ServerClient client)
+		{
+			var ip = client.TCP.Client.RemoteEndPoint.ToString().Split(":")[0];
 			if (Clients.ContainsKey(ip))
 			{
-				Clients[ip].Add(new SvarogClientInfo());
+				Clients[ip].Add(DateTime.Now);
 			}
 			else
-				Clients.Add(ip, new List<SvarogClientInfo>() { new SvarogClientInfo() });
+				Clients.Add(ip, new List<DateTime>() { DateTime.Now });
 			CheckClients();
 			return BannedIP.ContainsKey(ip) == false;
 		}
 
-		public bool ValidateHeader(HeaderPacket header)
+		public PacketFirewall ValidateHeaderAnswer(EasyTCP.Packets.HeaderPacket header)
 		{
-			return header.DataSize < MaxSizePacket;
+			return new PacketFirewall() { Code = 1, Answer = $"Bad size packet ({header.DataSize} \\ {MaxSizePacket})" };
 		}
 
-		public bool ValidatePacket(BasePacket packet)
+		public bool ValidateHeader(EasyTCP.Packets.HeaderPacket header)
 		{
-			return true;
+			return header.DataSize < MaxSizePacket;
 		}
 	}
 }

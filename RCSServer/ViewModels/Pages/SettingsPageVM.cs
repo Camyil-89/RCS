@@ -36,9 +36,9 @@ namespace RCSServer.ViewModels.Pages
 		}
 		private void UpdateValue()
 		{
-			if (Service.Settings.Instance.Cerificate != null)
+			if (Service.Settings.Instance.Certificate != null)
 			{
-				SelectedCertificate = Service.Settings.Instance.Cerificate.Certificate.Info.Name;
+				SelectedCertificate = Service.Settings.Instance.Certificate.Certificate.Info.Name;
 				EnableViewCert = true;
 			}
 			else
@@ -120,7 +120,7 @@ namespace RCSServer.ViewModels.Pages
 					if (CertificateManager.RCSValidatingCertificate(cert.Certificate))
 					{
 						Service.Settings.Instance.Parametrs.PathToCertificate = dialog.FileName;
-						Service.Settings.Instance.Cerificate = cert;
+						Service.Settings.Instance.Certificate = cert;
 						MessageBoxHelper.InfoShow($"Сертификат действителен! Чтобы изменения  вступили в силу, перезапустите сервер!");
 					}
 					else
@@ -140,7 +140,7 @@ namespace RCSServer.ViewModels.Pages
 		private bool CanViewCertificateCommandExecute(object e) => true;
 		private void OnViewCertificateCommandExecuted(object e)
 		{
-			RCS.Service.UI.WindowManager.ShowInfoAboutCertificate(RCSServer.Service.Settings.Instance.Cerificate.Certificate);
+			RCS.Service.UI.WindowManager.ShowInfoAboutCertificate(RCSServer.Service.Settings.Instance.Certificate.Certificate);
 		}
 		#endregion
 		#endregion

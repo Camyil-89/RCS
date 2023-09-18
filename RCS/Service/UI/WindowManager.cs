@@ -1,5 +1,5 @@
 ﻿using RCS.Net.Packets;
-using RCS.Net.Tcp;
+using RCS.Net;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +14,7 @@ namespace RCS.Service.UI
 		UserCancel = 0,
 		OK = 1,
 	}
-	public class WindowAnswer : Base.ViewModel.BaseViewModel
+	public class WindowAnswer<T> : Base.ViewModel.BaseViewModel
 	{
 
 		#region TypeClose: Description
@@ -27,9 +27,9 @@ namespace RCS.Service.UI
 
 		#region Packet: Description
 		/// <summary>Description</summary>
-		private BasePacket _Packet;
+		private T _Packet;
 		/// <summary>Description</summary>
-		public BasePacket Packet { get => _Packet; set => Set(ref _Packet, value); }
+		public T Packet { get => _Packet; set => Set(ref _Packet, value); }
 		#endregion
 	}
 	public static class WindowManager
@@ -62,27 +62,27 @@ namespace RCS.Service.UI
 				return null;
 		}
 
-		public static WindowAnswer ShowTCPSenderWindow(BasePacket packet, RCSTCPConnection connection)
+		public static WindowAnswer<T> ShowTCPSenderWindow<T>(object packet, EasyTCP.Client client)
 		{
 			Views.Windows.TCPSenderWindow window = new Views.Windows.TCPSenderWindow();
 			ViewModels.Windows.TCPSenderWindowVM vm = new ViewModels.Windows.TCPSenderWindowVM();
 			window.DataContext = vm;
-
-			vm.Init(packet);
+		
+			vm.Init<T>(packet);
 			vm.Window = window;
-			vm.Connection = connection;
+			vm.Client = client;
 			window.ShowDialog();
-
-
-			var answer = new WindowAnswer();
-			answer.Packet = vm.AnswerPacket;
+		
+		
+			var answer = new WindowAnswer<T>();
+			answer.Packet = (T)vm.AnswerPacket;
 			answer.TypeClose = vm.UserCancel == true ? TypeCloseWindow.UserCancel : TypeCloseWindow.OK;
-
-			if (answer.Packet != null && answer.Packet.Type == PacketType.FirewallBLock)
-			{
-				MessageBoxHelper.WarningShow($"Пакет данных был заблокирован брандмауэром! Скорей всего вы отправили слишком большой файл!");
-			}
-
+		
+			//if (answer.Packet != null && answer.Packet.Type == PacketType.FirewallBLock)
+			//{
+			//	MessageBoxHelper.WarningShow($"Пакет данных был заблокирован брандмауэром! Скорей всего вы отправили слишком большой файл!");
+			//}
+		
 			return answer;
 		}
 	}

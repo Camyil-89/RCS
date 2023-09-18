@@ -62,10 +62,6 @@ namespace RCS.Certificates.Store
         /// <summary>Description</summary>
         public ObservableCollection<StoreItem> CertificatesView { get => _CertificatesView; set => Set(ref _CertificatesView, value); }
         #endregion
-        public void Add(Certificate certificate)
-        {
-            Certificates.Add(new StoreItem() { Certificate = certificate });
-        }
         private StoreItem GetItemWithoutValidating(Guid uid)
 		{
 			return Certificates.FirstOrDefault((i) => i.Certificate.Info.UID == uid);

@@ -1,7 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using RCS.Certificates;
-using RCS.Net.Tcp;
+using RCS.Net;
 using RCS.Service;
 using System.Security.Cryptography;
 
@@ -11,14 +11,14 @@ for (int i = 0; i < 100; i++)
 {
 	Task.Run(() =>
 	{
-		RCSTCPClient client = new RCSTCPClient();
-		client.PublicKey = cert.Info.PublicKey;
-		client.TimeoutUpdateKeys = 1;
-		client.Connect($"127.0.0.1", 1991);
-		while (true)
-		{
-			Thread.Sleep(1000);
-		}
+		//RCSTCPClient client = new RCSTCPClient();
+		//client.PublicKey = cert.Info.PublicKey;
+		//client.TimeoutUpdateKeys = 1;
+		//client.Connect($"127.0.0.1", 1991);
+		//while (true)
+		//{
+			//Thread.Sleep(1000);
+		//}
 
 	});
 }

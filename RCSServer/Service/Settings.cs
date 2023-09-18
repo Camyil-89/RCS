@@ -21,14 +21,14 @@ namespace RCSServer.Service
 		/// <summary>Description</summary>
 		private CertificateSecret _Cerificate;
 		/// <summary>Description</summary>
-		public CertificateSecret Cerificate { get => _Cerificate; set => Set(ref _Cerificate, value); }
+		public CertificateSecret Certificate { get => _Cerificate; set => Set(ref _Cerificate, value); }
 		#endregion
 
 		#region Clients: Description
 		/// <summary>Description</summary>
-		private ObservableCollection<RCS.Net.Tcp.RCSClient> _Clients = new ObservableCollection<RCS.Net.Tcp.RCSClient>();
+		private ObservableCollection<Models.ServerClient> _Clients = new ObservableCollection<Models.ServerClient>();
 		/// <summary>Description</summary>
-		public ObservableCollection<RCS.Net.Tcp.RCSClient> Clients { get => _Clients; set => Set(ref _Clients, value); }
+		public ObservableCollection<Models.ServerClient> Clients { get => _Clients; set => Set(ref _Clients, value); }
 		#endregion
 
 		#region Parametrs: Description

@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 namespace RCS.Net.Packets
 {
 	[Serializable]
-	public class Packet: BasePacket
+	public class PacketRequestCertificates
 	{
+		public List<object> Certificates { get; set; } = new List<object>();
 	}
 }

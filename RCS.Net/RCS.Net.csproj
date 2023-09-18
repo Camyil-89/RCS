@@ -21,4 +21,8 @@
 	  <PackageReference Include="OpenGost.Security.Cryptography" Version="0.2.1" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\..\..\cs\EasyTCP\EasyTCP\EasyTCP.csproj" />
+	</ItemGroup>
+
 </Project>

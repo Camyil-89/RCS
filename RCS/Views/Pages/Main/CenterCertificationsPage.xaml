@@ -117,7 +117,7 @@
 									<TextBox Text="{Binding Settings.Parametrs.Client.Port}"
 										 Grid.Column="1"/>
 								</Grid>
-								<Grid Margin="0 0 0 5">
+								<!--<Grid Margin="0 0 0 5">
 									<Grid.ColumnDefinitions>
 										<ColumnDefinition Width="280"/>
 										<ColumnDefinition/>
@@ -125,7 +125,7 @@
 									<TextBlock Text="Период обновления ключей (сек.)"/>
 									<TextBox Text="{Binding Settings.Parametrs.Client.TimeoutUpdateKeys}"
 										 Grid.Column="1"/>
-								</Grid>
+								</Grid>-->
 							</StackPanel>
 							<Grid Margin="0 0 0 5">
 								<Grid.ColumnDefinitions>
@@ -186,7 +186,7 @@
 													  ToolTip="{Binding PingText}"
 													  Grid.Column="1"/>
 							</Grid>
-							<Grid Margin="0 5 0 5">
+							<!--<Grid Margin="0 5 0 5">
 								<Grid.ColumnDefinitions>
 									<ColumnDefinition Width="280"/>
 									<ColumnDefinition/>
@@ -195,7 +195,7 @@
 								<CUI:ToolTipTextBlock Text="{Binding LastUpdateKeysText}"
 													  ToolTip="{Binding LastUpdateKeysText}"
 													  Grid.Column="1"/>
-							</Grid>
+							</Grid>-->
 							<Grid Margin="0 15 0 5">
 								<Grid.ColumnDefinitions>
 									<ColumnDefinition Width="120"/>
